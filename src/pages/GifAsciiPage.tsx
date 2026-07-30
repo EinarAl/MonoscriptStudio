@@ -24,7 +24,7 @@ export default function GifAsciiPage({ opts, updateOpt, previewUrl, gifUrl, gifD
   }, [updateOpt])
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    if (opts.gifAnim !== 'radioWaves') return
+    if (opts.gifAnim !== 'radioWaves' || e.altKey) return
     draggingRef.current = true
     setIsDragging(true)
     ;(e.target as HTMLElement).setPointerCapture(e.pointerId)

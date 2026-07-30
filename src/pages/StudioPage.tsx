@@ -6,8 +6,8 @@ import ControlSection from '../components/ControlSection'
 import AnimatedSlider from '../components/AnimatedSlider'
 import ThreeDViewer from '../components/ThreeDViewer'
 import CharSetPicker from '../components/CharSetPicker'
-import PresetPicker from '../components/PresetPicker'
-import FilterPanel from '../components/FilterPanel'
+import FilterList from '../components/FilterList'
+import PresetManager from '../components/PresetManager'
 import FileUpload from '../components/FileUpload'
 import GifAsciiPage from './GifAsciiPage'
 import StaticAsciiPage from './StaticAsciiPage'
@@ -36,6 +36,57 @@ export default function StudioPage() {
   const [sourceImageData, setSourceImageData] = useState<ImageData | null>(null)
   const [gridInfo, setGridInfo] = useState<{ cols: number; rows: number } | null>(null)
   const svgRef = useRef('')
+  const [previewZoom, setPreviewZoom] = useState(1)
+  const [previewPan, setPreviewPan] = useState({ x: 0, y: 0 })
+  const isPanning = useRef(false)
+  const lastPan = useRef({ x: 0, y: 0 })
+  const zoomRef = useRef(1)
+  const panRef = useRef({ x: 0, y: 0 })
+  const [panning, setPanning] = useState(false)
+
+  const handlePreviewWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault()
+    const delta = e.deltaY > 0 ? -0.1 : 0.1
+    zoomRef.current = Math.max(0.25, Math.min(10, zoomRef.current + delta))
+    setPreviewZoom(zoomRef.current)
+  }, [])
+
+  const handlePreviewMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button !== 1) return
+    e.preventDefault()
+    isPanning.current = true
+    setPanning(true)
+    lastPan.current = { x: e.clientX, y: e.clientY }
+  }, [])
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!isPanning.current) return
+      const dx = e.clientX - lastPan.current.x
+      const dy = e.clientY - lastPan.current.y
+      lastPan.current = { x: e.clientX, y: e.clientY }
+      panRef.current.x += dx
+      panRef.current.y += dy
+      setPreviewPan({ ...panRef.current })
+    }
+    const onUp = () => {
+      isPanning.current = false
+      setPanning(false)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+  }, [])
+
+  useEffect(() => {
+    zoomRef.current = 1
+    panRef.current = { x: 0, y: 0 }
+    setPreviewZoom(1)
+    setPreviewPan({ x: 0, y: 0 })
+  }, [mode])
 
   const updateOpt = <K extends keyof AsciiOptions>(key: K, val: AsciiOptions[K]) =>
     setOpts(prev => ({ ...prev, [key]: val }))
@@ -194,7 +245,7 @@ export default function StudioPage() {
 
   const colorModes: ColorMode[] = ['mono', 'multi', 'original']
 
-  const sidebar = (
+  const leftSidebar = (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-subtle)' }}>
         <FileUpload
@@ -203,9 +254,25 @@ export default function StudioPage() {
           label={mode === '3d' ? (fileLoaded ? 'SVG loaded' : 'Upload SVG') : undefined}
         />
       </div>
+      <div style={{ flex: 1, overflow: 'hidden auto' }}>
+        <FilterList
+          activeFilters={opts.activeFilters}
+          filterParams={opts.filterParams}
+          onChange={v => updateOpt('activeFilters', v)}
+          onParamChange={(fid, key, val) => setOpts(prev => ({
+            ...prev, filterParams: { ...prev.filterParams, [fid]: { ...prev.filterParams[fid], [key]: val } },
+          }))}
+        />
+        <PresetManager value={opts.presets} strength={opts.presetStrength} onChange={v => updateOpt('presets', v)}
+          onStrengthChange={(id, val) => setOpts(prev => ({ ...prev, presetStrength: { ...prev.presetStrength, [id]: val } }))} />
+      </div>
+    </div>
+  )
 
+  const rightSidebar = (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {gridInfo && (
-        <div style={{ padding: '6px 16px 0', fontSize: 10, color: 'var(--color-text-tertiary)' }}>
+        <div style={{ padding: '8px 16px', fontSize: 10, color: 'var(--color-text-tertiary)', borderBottom: '1px solid var(--color-border-subtle)' }}>
           {gridInfo.cols}W &times; {gridInfo.rows}H
         </div>
       )}
@@ -237,20 +304,6 @@ export default function StudioPage() {
                 }}>{m}</button>
               ))}
             </div>
-          </ControlSection>
-          <ControlSection label="Filters" defaultOpen={false}>
-            <FilterPanel
-              activeFilters={opts.activeFilters}
-              filterParams={opts.filterParams}
-              onChange={v => updateOpt('activeFilters', v)}
-              onParamChange={(fid, key, val) => setOpts(prev => ({
-                ...prev, filterParams: { ...prev.filterParams, [fid]: { ...prev.filterParams[fid], [key]: val } },
-              }))}
-            />
-          </ControlSection>
-          <ControlSection label="Presets" defaultOpen={false}>
-            <PresetPicker value={opts.presets} strength={opts.presetStrength} onChange={v => updateOpt('presets', v)}
-              onStrengthChange={(id, val) => setOpts(prev => ({ ...prev, presetStrength: { ...prev.presetStrength, [id]: val } }))} />
           </ControlSection>
         </>
       )}
@@ -348,20 +401,6 @@ export default function StudioPage() {
               ))}
             </div>
           </ControlSection>
-          <ControlSection label="Filters" defaultOpen={false}>
-            <FilterPanel
-              activeFilters={opts.activeFilters}
-              filterParams={opts.filterParams}
-              onChange={v => updateOpt('activeFilters', v)}
-              onParamChange={(fid, key, val) => setOpts(prev => ({
-                ...prev, filterParams: { ...prev.filterParams, [fid]: { ...prev.filterParams[fid], [key]: val } },
-              }))}
-            />
-          </ControlSection>
-          <ControlSection label="Presets" defaultOpen={false}>
-            <PresetPicker value={opts.presets} strength={opts.presetStrength} onChange={v => updateOpt('presets', v)}
-              onStrengthChange={(id, val) => setOpts(prev => ({ ...prev, presetStrength: { ...prev.presetStrength, [id]: val } }))} />
-          </ControlSection>
         </>
       )}
 
@@ -430,64 +469,64 @@ export default function StudioPage() {
               </div>
             </div>
           </ControlSection>
-          <ControlSection label="Filters" defaultOpen={false}>
-            <FilterPanel
-              activeFilters={opts.activeFilters}
-              filterParams={opts.filterParams}
-              onChange={v => updateOpt('activeFilters', v)}
-              onParamChange={(fid, key, val) => setOpts(prev => ({
-                ...prev, filterParams: { ...prev.filterParams, [fid]: { ...prev.filterParams[fid], [key]: val } },
-              }))}
-            />
-          </ControlSection>
-          <ControlSection label="Presets" defaultOpen={false}>
-            <PresetPicker value={opts.presets} strength={opts.presetStrength} onChange={v => updateOpt('presets', v)}
-              onStrengthChange={(id, val) => setOpts(prev => ({ ...prev, presetStrength: { ...prev.presetStrength, [id]: val } }))} />
-          </ControlSection>
         </>
       )}
     </div>
   )
 
   return (
-    <StudioShell mode={mode} onModeChange={setMode} sidebar={sidebar}>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={mode}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.2 }}
-          style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        >
-          {mode === '3d' && (
-            <ThreeDViewer
-              geometry={geometry}
-              asciiOptions={opts}
-              animationMode={animationMode}
-              spinSpeed={1}
-              onGrid={handle3dGrid}
-            />
-          )}
-          {mode === 'gif' && (
-            <GifAsciiPage
-              opts={opts}
-              updateOpt={updateOpt}
-              previewUrl={previewUrl}
-              gifUrl={gifUrl}
-              gifDone={gifDone}
-            />
-          )}
-          {mode === 'static' && (
-            <StaticAsciiPage
-              grid={staticGrid}
-              opts={opts}
-              sourceImageData={sourceImageData}
-              fileLoaded={fileLoaded}
-            />
-          )}
-        </motion.div>
-      </AnimatePresence>
+    <StudioShell mode={mode} onModeChange={setMode} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
+      <div
+        onWheel={handlePreviewWheel}
+        onMouseDown={handlePreviewMouseDown}
+        style={{ width: '100%', height: '100%', overflow: 'hidden', cursor: panning ? 'grabbing' : 'default' }}
+      >
+        <div style={{
+          transform: `scale(${previewZoom})`,
+          translate: `${previewPan.x}px ${previewPan.y}px`,
+          transformOrigin: 'center center',
+          width: '100%', height: '100%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={mode}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              {mode === '3d' && (
+                <ThreeDViewer
+                  geometry={geometry}
+                  asciiOptions={opts}
+                  animationMode={animationMode}
+                  spinSpeed={1}
+                  onGrid={handle3dGrid}
+                />
+              )}
+              {mode === 'gif' && (
+                <GifAsciiPage
+                  opts={opts}
+                  updateOpt={updateOpt}
+                  previewUrl={previewUrl}
+                  gifUrl={gifUrl}
+                  gifDone={gifDone}
+                />
+              )}
+              {mode === 'static' && (
+                <StaticAsciiPage
+                  grid={staticGrid}
+                  opts={opts}
+                  sourceImageData={sourceImageData}
+                  fileLoaded={fileLoaded}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
     </StudioShell>
   )
 }

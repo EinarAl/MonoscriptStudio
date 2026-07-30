@@ -63,8 +63,9 @@
   --radius-card: 16px;
   --radius-pill: 99px;
 
-  /* Sidebar */
-  --sidebar-width: 280px;
+  /* Sidebars */
+  --left-sidebar-width: 220px;
+  --right-sidebar-width: 280px;
   --topbar-height: 48px;
 }
 
