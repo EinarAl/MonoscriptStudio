@@ -10,11 +10,13 @@ import GlowButton from '../components/GlowButton'
 import FilterList from '../components/FilterList'
 import PresetManager from '../components/PresetManager'
 import FileUpload from '../components/FileUpload'
+import PixelEditor from '../components/PixelEditor'
 import GifAsciiPage from './GifAsciiPage'
 import StaticAsciiPage from './StaticAsciiPage'
 import { generateAsciiGif } from '../lib/gifAscii'
 import { imageToAsciiGrid, gridToPlainText, gridToHtml, gridToSvg, gridToJson, renderGridToCanvas, removeBackground } from '../lib/imageToAscii'
 import { extrudeSvg } from '../lib/svgTo3D'
+import { pixelGridToGeometry } from '../lib/pixelTo3D'
 import { DEFAULT_ASCII_OPTIONS } from '../types'
 import type { AsciiOptions, AsciiGrid, ColorMode } from '../types'
 
@@ -45,6 +47,11 @@ export default function StudioPage() {
   const zoomRef = useRef(1)
   const panRef = useRef({ x: 0, y: 0 })
   const [panning, setPanning] = useState(false)
+  const [pixelGrid, setPixelGrid] = useState<string[][]>([])
+  const [showPixelArt, setShowPixelArt] = useState(false)
+  const pixelGridRef = useRef<string[][]>([])
+  const showPixelArtRef = useRef(false)
+  const pixelDebounceRef = useRef(0)
 
   const handlePreviewWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault()
@@ -101,6 +108,35 @@ export default function StudioPage() {
     }
   }, [])
 
+  const handleTogglePixelArt = useCallback(() => {
+    const next = !showPixelArt
+    showPixelArtRef.current = next
+    setShowPixelArt(next)
+    if (next && pixelGrid.length === 0) {
+      const size = 16
+      const empty = Array.from({ length: size }, () => Array(size).fill(''))
+      setPixelGrid(empty)
+      pixelGridRef.current = empty
+    }
+    if (!next) {
+      if (svgRef.current) {
+        loadGeometryFromSvg(svgRef.current, depthRatio)
+      } else {
+        setGeometry(makeDefaultGeometry())
+      }
+    }
+  }, [showPixelArt, pixelGrid, depthRatio, loadGeometryFromSvg])
+
+  const handlePixelGridChange = useCallback((grid: string[][]) => {
+    setPixelGrid(grid)
+    pixelGridRef.current = grid
+    clearTimeout(pixelDebounceRef.current)
+    pixelDebounceRef.current = window.setTimeout(() => {
+      const geo = pixelGridToGeometry(grid, 4, depthRatio)
+      if (geo) setGeometry(geo)
+    }, 150)
+  }, [depthRatio])
+
   const handleFile = useCallback((_file: File, dataUrl: string) => {
     if (mode === '3d') {
       fetch(dataUrl).then(r => r.text()).then(svg => {
@@ -129,10 +165,15 @@ export default function StudioPage() {
     }
   }, [mode, depthRatio, loadGeometryFromSvg])
 
-  /* Re-extrude SVG when depth changes */
+  /* Re-extrude SVG or pixel grid when depth changes */
   useEffect(() => {
-    if (mode === '3d' && svgRef.current) {
-      loadGeometryFromSvg(svgRef.current, depthRatio)
+    if (mode === '3d') {
+      if (showPixelArtRef.current && pixelGridRef.current.length > 0) {
+        const geo = pixelGridToGeometry(pixelGridRef.current, 4, depthRatio)
+        if (geo) setGeometry(geo)
+      } else if (svgRef.current) {
+        loadGeometryFromSvg(svgRef.current, depthRatio)
+      }
     }
   }, [depthRatio, mode, loadGeometryFromSvg])
 
@@ -283,17 +324,27 @@ export default function StudioPage() {
         <>
           <ControlSection label="Sampling">
             <AnimatedSlider label="Width" value={opts.width} min={10} max={160} step={1} onChange={v => updateOpt('width', v)} />
-            <AnimatedSlider label="Scale" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="H Scale" value={opts.heightScale} min={0.2} max={2} step={0.05} onChange={v => updateOpt('heightScale', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Density" value={opts.densityBias} min={0.2} max={3} step={0.05} onChange={v => updateOpt('densityBias', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Depth" value={depthRatio} min={0.1} max={1} step={0.05} onChange={setDepthRatio} format={v => v.toFixed(2)} />
+            <AnimatedSlider label="Focus" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
             <CharSetPicker value={opts.charset} onChange={v => updateOpt('charset', v)} />
+          </ControlSection>
+          <ControlSection label="Pixel Art" defaultOpen={false}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <GlowButton onClick={handleTogglePixelArt} active={showPixelArt}
+                radius={0} textColor="var(--color-text-secondary)" lineColor="#ffffff" intensity={1.5}
+                style={{ width: '100%', padding: '6px 0', fontSize: 11, fontWeight: 500, border: '1px dashed var(--color-border-visible)', background: 'transparent' }}>
+                {showPixelArt ? 'Close Pixel Art' : 'Draw Pixel Art'}
+              </GlowButton>
+              <PixelEditor grid={pixelGrid} onChange={handlePixelGridChange} visible={showPixelArt} />
+            </div>
           </ControlSection>
           <ControlSection label="Controls">
             <div style={{ display: 'flex', gap: 6 }}>
               {(['spin', 'tilt', 'drag'] as const).map(m => (
                 <GlowButton key={m} onClick={() => setAnimationMode(m)} active={animationMode === m}
-                  radius={0} style={{ padding: '4px 8px', fontSize: 10, fontWeight: 500 }}>
+                  radius={0} textColor="var(--color-text-secondary)" style={{ padding: '4px 8px', fontSize: 10, fontWeight: 500 }}>
                   {m === 'spin' ? 'Auto-Spin' : m === 'tilt' ? 'Mouse Tilt' : 'Click-Drag'}
                 </GlowButton>
               ))}
@@ -309,7 +360,7 @@ export default function StudioPage() {
             <div style={{ display: 'flex', gap: 6 }}>
               {colorModes.map(m => (
                 <GlowButton key={m} onClick={() => updateOpt('colorMode', m)} active={opts.colorMode === m}
-                  radius={0} style={{ padding: '4px 8px', fontSize: 11, fontWeight: 500 }}>
+                  radius={0} textColor="var(--color-text-secondary)" style={{ padding: '4px 8px', fontSize: 11, fontWeight: 500 }}>
                   {m}
                 </GlowButton>
               ))}
@@ -322,10 +373,10 @@ export default function StudioPage() {
         <>
           <ControlSection label="Sampling">
             <AnimatedSlider label="Width" value={opts.width} min={10} max={160} step={1} onChange={v => updateOpt('width', v)} />
-            <AnimatedSlider label="Scale" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="H Scale" value={opts.heightScale} min={0.2} max={2} step={0.05} onChange={v => updateOpt('heightScale', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Duration" value={opts.duration} min={1} max={10} step={1} onChange={v => updateOpt('duration', v)} format={v => `${v}s`} />
             <AnimatedSlider label="FPS" value={opts.fps} min={5} max={30} step={5} onChange={v => updateOpt('fps', v)} />
+            <AnimatedSlider label="Focus" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
             <CharSetPicker value={opts.charset} onChange={v => updateOpt('charset', v)} />
           </ControlSection>
           <ControlSection label="Tone">
@@ -393,8 +444,8 @@ export default function StudioPage() {
               </label>
               {gifDownloadUrl && (
                 <GlowButton onClick={() => { const a = document.createElement('a'); a.href = gifDownloadUrl; a.download = gifDownloadName; a.click() }}
-                  radius={0} textColor="var(--color-accent)" lineColor="#ffffff" intensity={1.5}
-                  style={{ padding: '6px 0', width: '100%', border: '1px solid var(--color-accent)', background: 'transparent' }}>
+                  radius={0} textColor="var(--color-text-secondary)" lineColor="#ffffff" intensity={1.5}
+                  style={{ width: '100%', padding: '8px 0', fontSize: 12, fontWeight: 500, border: '1px dashed var(--color-border-visible)', background: 'transparent' }}>
                   {gifDone && gifUrl ? 'Download GIF' : 'Download Preview'}
                 </GlowButton>
               )}
@@ -404,7 +455,7 @@ export default function StudioPage() {
             <div style={{ display: 'flex', gap: 6 }}>
               {colorModes.map(m => (
                 <GlowButton key={m} onClick={() => updateOpt('colorMode', m)} active={opts.colorMode === m}
-                  radius={0} style={{ padding: '4px 8px', fontSize: 11, fontWeight: 500 }}>
+                  radius={0} textColor="var(--color-text-secondary)" style={{ padding: '4px 8px', fontSize: 11, fontWeight: 500 }}>
                   {m}
                 </GlowButton>
               ))}
@@ -417,9 +468,9 @@ export default function StudioPage() {
         <>
           <ControlSection label="Sampling">
             <AnimatedSlider label="Width" value={opts.width} min={10} max={220} step={1} onChange={v => updateOpt('width', v)} />
-            <AnimatedSlider label="Scale" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="H Scale" value={opts.heightScale} min={0.2} max={2} step={0.05} onChange={v => updateOpt('heightScale', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Pixelate" value={opts.pixelate} min={0} max={10} step={1} onChange={v => updateOpt('pixelate', v)} />
+            <AnimatedSlider label="Focus" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
             <CharSetPicker value={opts.charset} onChange={v => updateOpt('charset', v)} />
           </ControlSection>
           <ControlSection label="Tone">
@@ -431,7 +482,7 @@ export default function StudioPage() {
             <div style={{ display: 'flex', gap: 6 }}>
               {colorModes.map(m => (
                 <GlowButton key={m} onClick={() => updateOpt('colorMode', m)} active={opts.colorMode === m}
-                  radius={0} style={{ padding: '4px 8px', fontSize: 11, fontWeight: 500 }}>
+                  radius={0} textColor="var(--color-text-secondary)" style={{ padding: '4px 8px', fontSize: 11, fontWeight: 500 }}>
                   {m}
                 </GlowButton>
               ))}
@@ -458,7 +509,7 @@ export default function StudioPage() {
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                 {['txt', 'html', 'svg', 'json', 'png'].map(f => (
                   <GlowButton key={f} onClick={() => handleStaticExport(f)}
-                    radius={0} textColor="var(--color-accent)" lineColor="#ffffff" intensity={1.5}
+                    radius={0} textColor="var(--color-text-secondary)" lineColor="#ffffff" intensity={1.5}
                     style={{ padding: '5px 0', minWidth: 40, fontSize: 10, fontWeight: 500, border: '1px solid var(--color-accent)', background: 'transparent', boxShadow: 'none' }}>
                     .{f}
                   </GlowButton>

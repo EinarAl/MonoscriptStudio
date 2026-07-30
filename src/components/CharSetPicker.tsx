@@ -12,7 +12,7 @@ export default function CharSetPicker({ value, onChange }: Props) {
       <label style={{ color: 'var(--color-text-secondary)', fontSize: 11 }}>Charset:</label>
       {Object.entries(PRESETS).map(([name, chars]) => (
         <GlowButton key={name} onClick={() => onChange(chars)} active={value === chars}
-          radius={0} style={{ padding: '4px 10px', fontSize: 11, flex: 'none' }}>
+          radius={0} textColor="var(--color-text-secondary)" style={{ padding: '4px 10px', fontSize: 11, flex: 'none' }}>
           {name}
         </GlowButton>
       ))}

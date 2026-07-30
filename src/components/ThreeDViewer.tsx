@@ -189,7 +189,7 @@ export default function ThreeDViewer({ geometry, asciiOptions, animationMode, sp
     }}>
       <canvas
         ref={canvasRef}
-        style={{ maxWidth: '100%', maxHeight: '100%', imageRendering: 'pixelated' }}
+        style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }}
       />
     </div>
   )

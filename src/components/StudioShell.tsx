@@ -18,8 +18,8 @@ const LEFT_DEFAULT = 220
 const RIGHT_DEFAULT = 280
 
 export default function StudioShell({ mode, onModeChange, leftSidebar, rightSidebar, children }: Props) {
-  const [leftOpen, setLeftOpen] = useState(true)
-  const [rightOpen, setRightOpen] = useState(true)
+  const [leftOpen, setLeftOpen] = useState(() => window.innerWidth > 768)
+  const [rightOpen, setRightOpen] = useState(() => window.innerWidth > 768)
   const [leftW, setLeftW] = useState(LEFT_DEFAULT)
   const [rightW, setRightW] = useState(RIGHT_DEFAULT)
   const prevLeft = useRef(LEFT_DEFAULT)

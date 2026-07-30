@@ -26,12 +26,12 @@ export default function FileUpload({ accept, onFile, hasFile, compact, label }: 
     if (file) handle(file)
   }, [handle])
 
-  const sharedStyle: React.CSSProperties = {
+  const sharedStyle = {
     width: '100%',
     border: `1px dashed ${dragOver ? 'var(--color-accent)' : 'var(--color-border-visible)'}`,
     padding: compact ? '8px 12px' : '3rem 2rem',
     textAlign: 'center',
-    background: dragOver ? 'var(--color-accent-glow)' : 'transparent',
+    background: dragOver ? 'var(--color-accent-glow)' : 'var(--color-surface-base)',
     fontSize: compact ? 11 : 14,
   }
 
@@ -41,8 +41,9 @@ export default function FileUpload({ accept, onFile, hasFile, compact, label }: 
       textColor="var(--color-text-tertiary)"
       lineColor="#ffffff"
       intensity={1.5}
+      bgColor={dragOver ? '#222222' : '#0f0f0f'}
       onClick={() => inputRef.current?.click()}
-      style={sharedStyle}
+      style={sharedStyle as any}
       onDragOver={e => { e.preventDefault(); setDragOver(true) }}
       onDragLeave={() => setDragOver(false)}
       onDrop={onDrop}

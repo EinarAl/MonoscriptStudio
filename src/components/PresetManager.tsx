@@ -158,18 +158,20 @@ export default function PresetManager({ value, strength, onChange, onStrengthCha
               style={{ flex: 1, minWidth: 60, background: 'var(--color-surface-base)', border: '1px solid var(--color-border-visible)', borderRadius: 4, padding: '3px 6px', fontSize: 11, color: 'var(--color-text-primary)', outline: 'none' }}
               autoFocus />
             <GlowButton onClick={saveCurrent} active
-              radius={0} style={{ padding: '4px 10px', fontSize: 11 }}>Save</GlowButton>
+              radius={0} textColor="var(--color-text-secondary)" style={{ padding: '4px 10px', fontSize: 11 }}>Save</GlowButton>
             <GlowButton onClick={() => { setSaving(false); setSaveName('') }}
-              radius={0} style={{ padding: '4px 10px', fontSize: 11 }}>Cancel</GlowButton>
+              radius={0} textColor="var(--color-text-secondary)" style={{ padding: '4px 10px', fontSize: 11 }}>Cancel</GlowButton>
           </div>
         ) : (
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             <GlowButton onClick={() => setSaving(true)}
-              radius={0} style={{ padding: '4px 10px', fontSize: 11 }}>Save Current</GlowButton>
-            <GlowButton onClick={handleExport}
-              radius={0} textColor="var(--color-text-secondary)" style={{ padding: '4px 10px', fontSize: 11 }}>Export</GlowButton>
-            <GlowButton onClick={() => importRef.current?.click()}
-              radius={0} style={{ padding: '4px 10px', fontSize: 11 }}>Import</GlowButton>
+              radius={0} textColor="var(--color-text-secondary)" style={{ padding: '4px 10px', fontSize: 11 }}>Save Current</GlowButton>
+            <span style={{ display: 'inline-flex', gap: 4 }}>
+              <GlowButton onClick={handleExport}
+                radius={0} textColor="var(--color-text-secondary)" style={{ padding: '4px 10px', fontSize: 11 }}>Export</GlowButton>
+              <GlowButton onClick={() => importRef.current?.click()}
+                radius={0} textColor="var(--color-text-secondary)" style={{ padding: '4px 10px', fontSize: 11 }}>Import</GlowButton>
+            </span>
             <input ref={importRef} type="file" accept=".json" onChange={handleImport} hidden />
           </div>
         )}

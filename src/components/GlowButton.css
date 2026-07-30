@@ -17,8 +17,7 @@
   letter-spacing: 0.01em;
   line-height: 1;
   color: var(--sb-text-color);
-  background: transparent;
-  background: color-mix(in srgb, var(--sb-tint) calc(var(--sb-tint-opacity) * 100%), transparent);
+  background: var(--color-surface-base);
   border-radius: var(--sb-radius);
   backdrop-filter: blur(var(--sb-blur));
   -webkit-backdrop-filter: blur(var(--sb-blur));
@@ -27,14 +26,28 @@
     0 8px 24px rgba(0, 0, 0, 0.25);
   cursor: pointer;
   outline: none;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.specular-button:hover {
+  transform: scale(1.015);
+}
+
+.specular-button:not(.specular-button--active):hover {
+  color: #fff;
 }
 
 .specular-button:active {
   transform: scale(0.97);
 }
 
+.specular-button:disabled:hover {
+  transform: none;
+  color: var(--sb-text-color);
+}
+
 .specular-button:focus-visible {
+  outline: 2px solid var(--sb-text-color);
   outline: 2px solid color-mix(in srgb, var(--sb-text-color) 60%, transparent);
   outline-offset: 3px;
 }

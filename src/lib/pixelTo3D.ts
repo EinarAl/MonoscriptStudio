@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 
 export function pixelGridToGeometry(
-  grid: boolean[][],
+  grid: string[][],
   maxSize = 4,
   depthRatio = 0.35
 ): THREE.BufferGeometry | null {

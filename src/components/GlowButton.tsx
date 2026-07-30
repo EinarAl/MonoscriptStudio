@@ -42,6 +42,7 @@ export interface GlowButtonProps {
   type?: 'button' | 'submit' | 'reset'
   style?: CSSProperties
   active?: boolean
+  bgColor?: string
   onDragOver?: (e: React.DragEvent<HTMLButtonElement>) => void
   onDragLeave?: (e: React.DragEvent<HTMLButtonElement>) => void
   onDrop?: (e: React.DragEvent<HTMLButtonElement>) => void
@@ -71,6 +72,7 @@ uniform float uShineSize;
 uniform float uShineFade;
 uniform float uThickness;
 uniform float uBaseWidth;
+uniform float uFade;
 
 out vec4 fragColor;
 
@@ -103,7 +105,7 @@ void main() {
 
   vec3 col = uBaseColor * base + uLineColor * hi;
   float a = clamp(base + hi, 0.0, 1.0);
-  fragColor = vec4(col, a);
+  fragColor = vec4(col, a * uFade);
 }
 `
 
@@ -147,12 +149,9 @@ const GlowButton = ({
     if (!btn || !fx) return
 
     const dpr = window.devicePixelRatio || 1
-    const renderer = new Renderer({ alpha: true, premultipliedAlpha: true, antialias: true, dpr })
+    const renderer = new Renderer({ alpha: true, premultipliedAlpha: false, antialias: true, dpr })
     const gl = renderer.gl
     gl.clearColor(0, 0, 0, 0)
-    gl.clear(gl.COLOR_BUFFER_BIT)
-    gl.enable(gl.BLEND)
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
 
     const geometry = new Triangle(gl)
     if (geometry.attributes.uv) delete geometry.attributes.uv
@@ -173,11 +172,11 @@ const GlowButton = ({
         uShineFade: { value: 0.7 },
         uThickness: { value: 1 },
         uBaseWidth: { value: dpr },
+        uFade: { value: 0 },
       },
     })
 
     const mesh = new Mesh(gl, { geometry, program })
-    fx.appendChild(gl.canvas)
 
     const sizeRef = { w: 1, h: 1 }
     const resize = () => {
@@ -190,9 +189,34 @@ const GlowButton = ({
       program.uniforms.uCenter.value = [(PAD + w / 2) * dpr, (PAD + h / 2) * dpr]
       program.uniforms.uHalfSize.value = [(w / 2) * dpr, (h / 2) * dpr]
     }
-    const ro = new ResizeObserver(resize)
-    ro.observe(btn)
     resize()
+
+    // Render first frame BEFORE appending canvas — avoids white flash
+    const lineC = new Color()
+    const baseC = new Color()
+    const p = propsRef.current
+    lineC.set(p.lineColor)
+    baseC.set(p.baseColor)
+    program.uniforms.uAngle.value = 2.4
+    program.uniforms.uRadius.value = Math.min(p.radius, Math.min(sizeRef.w, sizeRef.h) / 2) * dpr
+    program.uniforms.uLineColor.value = [lineC.r, lineC.g, lineC.b]
+    program.uniforms.uBaseColor.value = [baseC.r, baseC.g, baseC.b]
+    program.uniforms.uIntensity.value = 0
+    program.uniforms.uShineSize.value = (p.shineSize * Math.PI) / 180
+    program.uniforms.uShineFade.value = (p.shineFade * Math.PI) / 180
+    program.uniforms.uThickness.value = p.thickness * dpr
+    program.uniforms.uFade.value = 0
+    gl.clear(gl.COLOR_BUFFER_BIT)
+    renderer.render({ scene: mesh })
+
+    // Now safe to append — already rendered with correct colors
+    fx.appendChild(gl.canvas)
+
+    const ro = new ResizeObserver(() => {
+      resize()
+      program.uniforms.uRadius.value = Math.min(p.radius, Math.min(sizeRef.w, sizeRef.h) / 2) * dpr
+    })
+    ro.observe(btn)
 
     let pointerAngle: number | null = null
     let proximityT = 0
@@ -219,14 +243,11 @@ const GlowButton = ({
     let last = performance.now()
     let raf = 0
 
-    const lineC = new Color()
-    const baseC = new Color()
-
     const update = (now: number) => {
       raf = requestAnimationFrame(update)
       const dt = Math.min((now - last) / 1000, 0.05)
       last = now
-      const p = propsRef.current
+      const cp = propsRef.current
 
       const steer = pointerAngle != null && proximityT > 0
       const target = steer ? pointerAngle! : angle
@@ -239,16 +260,17 @@ const GlowButton = ({
         bright += (0 - bright) * (1 - Math.exp(-dt * 8))
       }
 
-      lineC.set(p.lineColor)
-      baseC.set(p.baseColor)
+      lineC.set(cp.lineColor)
+      baseC.set(cp.baseColor)
       program.uniforms.uAngle.value = angle
-      program.uniforms.uRadius.value = Math.min(p.radius, Math.min(sizeRef.w, sizeRef.h) / 2) * dpr
+      program.uniforms.uRadius.value = Math.min(cp.radius, Math.min(sizeRef.w, sizeRef.h) / 2) * dpr
       program.uniforms.uLineColor.value = [lineC.r, lineC.g, lineC.b]
       program.uniforms.uBaseColor.value = [baseC.r, baseC.g, baseC.b]
-      program.uniforms.uIntensity.value = p.intensity * bright
-      program.uniforms.uShineSize.value = (p.shineSize * Math.PI) / 180
-      program.uniforms.uShineFade.value = (p.shineFade * Math.PI) / 180
-      program.uniforms.uThickness.value = p.thickness * dpr
+      program.uniforms.uIntensity.value = cp.intensity
+      program.uniforms.uFade.value = bright
+      program.uniforms.uShineSize.value = (cp.shineSize * Math.PI) / 180
+      program.uniforms.uShineFade.value = (cp.shineFade * Math.PI) / 180
+      program.uniforms.uThickness.value = cp.thickness * dpr
       renderer.render({ scene: mesh })
     }
     raf = requestAnimationFrame(update)
@@ -273,7 +295,7 @@ const GlowButton = ({
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
-      className={`specular-button specular-button--${size}${className ? ` ${className}` : ''}`}
+      className={`specular-button specular-button--${size}${active ? ' specular-button--active' : ''}${className ? ` ${className}` : ''}`}
       style={{
         '--sb-radius': `${radius}px`,
         '--sb-tint': tint,

@@ -51,19 +51,19 @@ export default function GifAsciiPage({ opts, updateOpt, previewUrl, gifUrl, gifD
 
   return (
     <div style={{
-      width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      width: '100%', height: '100%',
       background: '#000000',
     }}>
       <div ref={gridRef} style={{
-        display: 'inline-grid', position: 'relative',
-        maxWidth: '100%', maxHeight: '100%',
+        width: '100%', height: '100%', position: 'relative',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <img src={src} alt="ASCII preview"
-          style={{ gridArea: '1/1', maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }}
+          style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
           draggable={false} />
         {opts.gifAnim === 'radioWaves' && (
           <div
-            style={{ gridArea: '1/1', touchAction: 'none', cursor: isDragging ? 'grabbing' : 'default', position: 'relative' }}
+            style={{ position: 'absolute', inset: 0, touchAction: 'none', cursor: isDragging ? 'grabbing' : 'default' }}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}

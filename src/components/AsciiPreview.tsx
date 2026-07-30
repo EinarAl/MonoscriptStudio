@@ -34,7 +34,7 @@ export default function AsciiPreview({ ascii, grid, fontSize = 8, lineHeight = 1
         overflow: 'auto',
       }}>
         <canvas ref={canvasRef} width={w} height={h}
-          style={{ maxWidth: '100%', maxHeight: '100%', imageRendering: 'pixelated' }} />
+          style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
       </div>
     )
   }
