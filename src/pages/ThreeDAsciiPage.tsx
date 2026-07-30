@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import * as THREE from 'three'
-import { Link } from 'react-router-dom'
 import FileUpload from '../components/FileUpload'
 import CharSetPicker from '../components/CharSetPicker'
 import AnimationModePicker from '../components/AnimationModePicker'
@@ -194,7 +193,6 @@ export default function ThreeDAsciiPage() {
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '2rem 1rem' }}>
       <div style={{ marginBottom: '1.5rem' }}>
-        <Link to="/" style={{ color: '#4f46e5', fontSize: 13, textDecoration: 'none' }}>&larr; Back</Link>
         <h1 style={{ fontSize: 24, margin: '0.5rem 0 0' }}>SVG &rarr; 3D ASCII</h1>
       </div>
 

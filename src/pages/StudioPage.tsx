@@ -9,6 +9,8 @@ import CharSetPicker from '../components/CharSetPicker'
 import PresetPicker from '../components/PresetPicker'
 import FilterPanel from '../components/FilterPanel'
 import FileUpload from '../components/FileUpload'
+import GifAsciiPage from './GifAsciiPage'
+import StaticAsciiPage from './StaticAsciiPage'
 import { DEFAULT_ASCII_OPTIONS } from '../types'
 import type { AsciiOptions, ColorMode } from '../types'
 
@@ -152,16 +154,8 @@ export default function StudioPage() {
               spinSpeed={1}
             />
           )}
-          {mode === 'gif' && (
-            <div style={{ color: 'var(--color-text-tertiary)', fontSize: 14, textAlign: 'center' }}>
-              <p>Upload an image to start</p>
-            </div>
-          )}
-          {mode === 'static' && (
-            <div style={{ color: 'var(--color-text-tertiary)', fontSize: 14, textAlign: 'center' }}>
-              <p>Upload an image to start</p>
-            </div>
-          )}
+          {mode === 'gif' && <GifAsciiPage />}
+          {mode === 'static' && <StaticAsciiPage />}
         </motion.div>
       </AnimatePresence>
     </StudioShell>
