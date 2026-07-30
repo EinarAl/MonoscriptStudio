@@ -383,8 +383,8 @@ export default function StudioPage() {
                 radius={0} textColor="var(--color-text-secondary)" lineColor="#ffffff" intensity={1.5}
                 style={{
                   width: '100%', padding: '8px 0', fontSize: 12, fontWeight: 500,
-                  border: `1px dashed ${fileLoaded ? 'var(--color-border-visible)' : 'var(--color-border-visible)'}`,
-                  background: 'transparent', boxShadow: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none',
+                  border: '1px dashed var(--color-border-visible)',
+                  background: 'transparent',
                 }}>
                 {generating ? `Generating ${progress || '...'}` : autoUpdate ? 'Auto (live)' : fileLoaded ? 'Generate GIF' : 'Upload first'}
               </GlowButton>
@@ -392,13 +392,11 @@ export default function StudioPage() {
                 <input type="checkbox" checked={autoUpdate} onChange={e => setAutoUpdate(e.target.checked)} /> Auto-update
               </label>
               {gifDownloadUrl && (
-                <a href={gifDownloadUrl} download={gifDownloadName}
-                  style={{ position: 'relative', overflow: 'hidden', isolation: 'isolate', display: 'block', padding: '6px 0', borderRadius: 6, width: '100%', textAlign: 'center', border: '1px solid var(--color-accent)', color: 'var(--color-accent)', textDecoration: 'none', fontSize: 11 }}
-                  onMouseEnter={e => { const s = e.currentTarget.querySelector('.spec') as HTMLDivElement; if (s) { s.style.opacity = '1'; s.style.transform = 'translateX(100%)' } }}
-                  onMouseLeave={e => { const s = e.currentTarget.querySelector('.spec') as HTMLDivElement; if (s) { s.style.opacity = '0'; s.style.transform = 'translateX(-100%)' } }}>
-                  <div className="spec" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0, transform: 'translateX(-100%)', background: 'linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.08) 50%,transparent 100%)', transition: 'opacity 0.25s, transform 0.5s cubic-bezier(0.2,0.9,0.3,1)' }} />
-                  <span style={{ position: 'relative', zIndex: 1 }}>{gifDone && gifUrl ? 'Download GIF' : 'Download Preview'}</span>
-                </a>
+                <GlowButton onClick={() => { const a = document.createElement('a'); a.href = gifDownloadUrl; a.download = gifDownloadName; a.click() }}
+                  radius={0} textColor="var(--color-accent)" lineColor="#ffffff" intensity={1.5}
+                  style={{ padding: '6px 0', width: '100%', border: '1px solid var(--color-accent)', background: 'transparent' }}>
+                  {gifDone && gifUrl ? 'Download GIF' : 'Download Preview'}
+                </GlowButton>
               )}
             </div>
           </ControlSection>

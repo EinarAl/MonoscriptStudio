@@ -17,6 +17,7 @@
   letter-spacing: 0.01em;
   line-height: 1;
   color: var(--sb-text-color);
+  background: transparent;
   background: color-mix(in srgb, var(--sb-tint) calc(var(--sb-tint-opacity) * 100%), transparent);
   border-radius: var(--sb-radius);
   backdrop-filter: blur(var(--sb-blur));

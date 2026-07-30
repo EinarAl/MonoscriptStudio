@@ -33,9 +33,6 @@ export default function FileUpload({ accept, onFile, hasFile, compact, label }: 
     textAlign: 'center',
     background: dragOver ? 'var(--color-accent-glow)' : 'transparent',
     fontSize: compact ? 11 : 14,
-    boxShadow: 'none',
-    backdropFilter: 'none',
-    WebkitBackdropFilter: 'none',
   }
 
   return (
