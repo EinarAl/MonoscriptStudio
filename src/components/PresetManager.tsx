@@ -167,7 +167,7 @@ export default function PresetManager({ value, strength, onChange, onStrengthCha
             <GlowButton onClick={() => setSaving(true)}
               radius={0} style={{ padding: '4px 10px', fontSize: 11 }}>Save Current</GlowButton>
             <GlowButton onClick={handleExport}
-              radius={0} style={{ padding: '4px 10px', fontSize: 11 }}>Export</GlowButton>
+              radius={0} textColor="var(--color-text-secondary)" style={{ padding: '4px 10px', fontSize: 11 }}>Export</GlowButton>
             <GlowButton onClick={() => importRef.current?.click()}
               radius={0} style={{ padding: '4px 10px', fontSize: 11 }}>Import</GlowButton>
             <input ref={importRef} type="file" accept=".json" onChange={handleImport} hidden />

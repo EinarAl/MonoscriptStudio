@@ -379,17 +379,13 @@ export default function StudioPage() {
           )}
           <ControlSection label="Generate">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <button onClick={doGenerate} disabled={!fileLoaded || generating}
-                style={{ position: 'relative', overflow: 'hidden', isolation: 'isolate',
-                  padding: '8px 0', borderRadius: 6, border: 'none', width: '100%',
+              <GlowButton onClick={doGenerate} disabled={!fileLoaded || generating}
+                radius={0} textColor="#000" lineColor="#ffffff" intensity={1.5}
+                style={{ padding: '8px 0', borderRadius: 6, width: '100%',
                   background: generating ? '#555' : autoUpdate ? '#2a6e3a' : 'var(--color-accent)',
-                  color: '#000', cursor: fileLoaded && !generating ? 'pointer' : 'default',
-                  fontSize: 12, fontWeight: 500 }}
-                onMouseEnter={e => { const s = e.currentTarget.querySelector('.spec') as HTMLDivElement; if (s) { s.style.opacity = '1'; s.style.transform = 'translateX(100%)' } }}
-                onMouseLeave={e => { const s = e.currentTarget.querySelector('.spec') as HTMLDivElement; if (s) { s.style.opacity = '0'; s.style.transform = 'translateX(-100%)' } }}>
-                <div className="spec" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0, transform: 'translateX(-100%)', background: 'linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.1) 50%,transparent 100%)', transition: 'opacity 0.25s, transform 0.5s cubic-bezier(0.2,0.9,0.3,1)' }} />
-                <span style={{ position: 'relative', zIndex: 1 }}>{generating ? `Generating ${progress || '...'}` : autoUpdate ? 'Auto (live)' : fileLoaded ? 'Generate GIF' : 'Upload first'}</span>
-              </button>
+                  fontSize: 12, fontWeight: 500, border: '1px solid var(--color-accent)' }}>
+                {generating ? `Generating ${progress || '...'}` : autoUpdate ? 'Auto (live)' : fileLoaded ? 'Generate GIF' : 'Upload first'}
+              </GlowButton>
               <label style={{ color: 'var(--color-text-secondary)', fontSize: 11, display: 'flex', alignItems: 'center', gap: 3 }}>
                 <input type="checkbox" checked={autoUpdate} onChange={e => setAutoUpdate(e.target.checked)} /> Auto-update
               </label>
@@ -461,15 +457,11 @@ export default function StudioPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                 {['txt', 'html', 'svg', 'json', 'png'].map(f => (
-                  <button key={f} onClick={() => handleStaticExport(f)}
-                    style={{ position: 'relative', overflow: 'hidden', isolation: 'isolate', flex: 1, padding: '5px 0', borderRadius: 4, minWidth: 40,
-                      border: '1px solid var(--color-accent)', background: 'transparent',
-                      color: 'var(--color-accent)', cursor: 'pointer', fontSize: 10, fontWeight: 500 }}
-                    onMouseEnter={e => { const s = e.currentTarget.querySelector('.spec') as HTMLDivElement; if (s) { s.style.opacity = '1'; s.style.transform = 'translateX(100%)' } }}
-                    onMouseLeave={e => { const s = e.currentTarget.querySelector('.spec') as HTMLDivElement; if (s) { s.style.opacity = '0'; s.style.transform = 'translateX(-100%)' } }}>
-                    <div className="spec" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0, transform: 'translateX(-100%)', background: 'linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.08) 50%,transparent 100%)', transition: 'opacity 0.25s, transform 0.5s cubic-bezier(0.2,0.9,0.3,1)' }} />
-                    <span style={{ position: 'relative', zIndex: 1 }}>.{f}</span>
-                  </button>
+                  <GlowButton key={f} onClick={() => handleStaticExport(f)}
+                    radius={0} textColor="var(--color-accent)" lineColor="#ffffff" intensity={1.5}
+                    style={{ padding: '5px 0', minWidth: 40, fontSize: 10, fontWeight: 500, border: '1px solid var(--color-accent)', background: 'transparent', boxShadow: 'none' }}>
+                    .{f}
+                  </GlowButton>
                 ))}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>

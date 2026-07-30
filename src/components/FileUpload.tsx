@@ -26,13 +26,18 @@ export default function FileUpload({ accept, onFile, hasFile, compact, label }: 
     if (file) handle(file)
   }, [handle])
 
+  const diagRef = useRef<HTMLDivElement>(null)
   const onHover = () => {
     const s = shineRef.current
     if (s) { s.style.opacity = '1'; s.style.transform = 'translateX(100%)' }
+    const d = diagRef.current
+    if (d) { d.style.opacity = '1'; d.style.transform = 'translate(100%, 100%)' }
   }
   const offHover = () => {
     const s = shineRef.current
     if (s) { s.style.opacity = '0'; s.style.transform = 'translateX(-100%)' }
+    const d = diagRef.current
+    if (d) { d.style.opacity = '0'; d.style.transform = 'translate(-100%, -100%)' }
   }
 
   return (
@@ -57,8 +62,14 @@ export default function FileUpload({ accept, onFile, hasFile, compact, label }: 
       <div ref={shineRef} style={{
         position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none',
         opacity: 0, transform: 'translateX(-100%)',
-        background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%)',
+        background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 20%, rgba(255,255,255,0.12) 45%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.12) 55%, rgba(255,255,255,0.04) 80%, transparent 100%)',
         transition: 'opacity 0.25s, transform 0.5s cubic-bezier(0.2, 0.9, 0.3, 1)',
+      }} />
+      <div ref={diagRef} className="specular-shine-diag" style={{
+        position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none',
+        opacity: 0, transform: 'translate(-100%, -100%)',
+        background: 'linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.06) 50%, transparent 70%)',
+        transition: 'opacity 0.3s, transform 0.7s cubic-bezier(0.2, 0.9, 0.3, 1)',
       }} />
       <input
         ref={inputRef}
