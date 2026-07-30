@@ -50,7 +50,7 @@ export default function StudioShell({ mode, onModeChange, sidebar, children }: P
         {/* Preview */}
         <main style={{
           flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          overflow: 'hidden', position: 'relative',
+          overflow: 'hidden', position: 'relative', background: '#000000',
         }}>
           {children}
         </main>

@@ -51,6 +51,10 @@ export interface AsciiOptions {
   waveWarmth: number
   waveInward: boolean
   outputScale: number
+  duration: number
+  fps: number
+  removeBg: boolean
+  lineHeight: number
 }
 
 export const DEFAULT_ASCII_OPTIONS: AsciiOptions = {
@@ -64,9 +68,9 @@ export const DEFAULT_ASCII_OPTIONS: AsciiOptions = {
   gamma: 1.0,
   pixelate: 0,
   colorMode: 'original',
-  bgColor: '#0d0d1a',
+  bgColor: '#000000',
   bgTransparent: false,
-  fgColor: '#f0e6d0',
+  fgColor: '#cccccc',
   cutDarks: 0,
   cutLights: 0,
   overlayImage: false,
@@ -90,6 +94,10 @@ export const DEFAULT_ASCII_OPTIONS: AsciiOptions = {
   waveWarmth: 0,
   waveInward: false,
   outputScale: 1,
+  duration: 2,
+  fps: 10,
+  removeBg: false,
+  lineHeight: 1.0,
 }
 
 export interface AsciiCell {

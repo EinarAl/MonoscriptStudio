@@ -24,24 +24,24 @@ export default function PresetPicker({ value, strength, onChange, onStrengthChan
           <div key={p.id} style={{
             display: 'flex', flexDirection: 'column', gap: 2,
             padding: '2px 6px', borderRadius: 4,
-            background: on ? 'rgba(79,70,229,0.2)' : 'transparent',
-            border: `1px solid ${on ? '#4f46e5' : '#333'}`,
+            background: on ? 'var(--color-accent-glow)' : 'transparent',
+            border: `1px solid ${on ? 'var(--color-accent)' : 'var(--color-border-visible)'}`,
           }}>
             <label style={{
               display: 'flex', alignItems: 'center', gap: 3,
-              color: '#999', fontSize: 10, cursor: 'pointer',
+              color: 'var(--color-text-secondary)', fontSize: 10, cursor: 'pointer',
             }}>
               <input type="checkbox" checked={on} onChange={() => toggle(p.id)}
-                style={{ accentColor: '#4f46e5', margin: 0 }} />
+                style={{ accentColor: 'var(--color-accent)', margin: 0 }} />
               {p.label}
             </label>
             {on && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ color: '#aaa', fontSize: 10, minWidth: 38 }}>Intensity:</span>
+                <span style={{ color: 'var(--color-text-tertiary)', fontSize: 10, minWidth: 38 }}>Intensity:</span>
                 <input type="range" min={0} max={1} step={0.05} value={strength[p.id] ?? 1}
                   onChange={e => onStrengthChange(p.id, +e.target.value)}
-                  style={{ width: 60, accentColor: '#4f46e5', margin: 0 }} />
-                <span style={{ color: '#aaa', fontSize: 10, minWidth: 24 }}>{((strength[p.id] ?? 1) * 100).toFixed(0)}%</span>
+                  style={{ width: 60, accentColor: 'var(--color-accent)', margin: 0 }} />
+                <span style={{ color: 'var(--color-text-tertiary)', fontSize: 10, minWidth: 24 }}>{((strength[p.id] ?? 1) * 100).toFixed(0)}%</span>
               </div>
             )}
           </div>

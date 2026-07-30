@@ -1,26 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+@font-face {
+  font-family: 'Monocraft';
+  src: url('/Monocraft.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  /* Colors */
-  --color-void: #000000;
-  --color-surface-base: #111113;
-  --color-surface-raised: rgba(255,255,255,0.04);
-  --color-surface-hover: rgba(255,255,255,0.08);
-  --color-surface-active: rgba(255,255,255,0.12);
-  --color-border-subtle: rgba(255,255,255,0.06);
-  --color-border-visible: rgba(255,255,255,0.1);
-  --color-text-primary: #f0e6d0;
-  --color-text-secondary: rgba(240,230,208,0.65);
-  --color-text-tertiary: rgba(240,230,208,0.4);
-  --color-text-dim: rgba(240,230,208,0.25);
-  --color-accent: #4f46e5;
-  --color-accent-hover: #6366f1;
-  --color-accent-glow: rgba(79,70,229,0.15);
-  --color-green: #22c55e;
+  /* Colors — grainrad palette */
+  --color-void: #0a0a0a;
+  --color-surface-base: #0f0f0f;
+  --color-surface-raised: #141414;
+  --color-surface-hover: #1a1a1a;
+  --color-surface-active: #222222;
+  --color-border-subtle: #181818;
+  --color-border-visible: #222222;
+  --color-text-primary: #cccccc;
+  --color-text-secondary: #888888;
+  --color-text-tertiary: #555555;
+  --color-text-dim: #333333;
+  --color-accent: #ffffff;
+  --color-accent-hover: #dddddd;
+  --color-accent-glow: rgba(255,255,255,0.08);
+  --color-green: #888888;
   --color-red: #ef4444;
   --color-yellow: #eab308;
 
   /* Typography */
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'Courier New', Courier, monospace;
+  --font-sans: 'IBM Plex Mono', 'Courier New', monospace;
+  --font-mono: 'Monocraft', 'IBM Plex Mono', 'Courier New', monospace;
 
   --text-caption: 11px;
   --text-label: 12px;

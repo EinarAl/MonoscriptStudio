@@ -8,7 +8,7 @@ interface Props {
 export default function CharSetPicker({ value, onChange }: Props) {
   return (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-      <label style={{ color: '#999', fontSize: 12 }}>Charset:</label>
+      <label style={{ color: 'var(--color-text-secondary)', fontSize: 11 }}>Charset:</label>
       {Object.entries(PRESETS).map(([name, chars]) => (
         <button
           key={name}
@@ -16,9 +16,9 @@ export default function CharSetPicker({ value, onChange }: Props) {
           style={{
             padding: '4px 10px',
             borderRadius: 6,
-            border: `1px solid ${value === chars ? '#4f46e5' : '#333'}`,
-            background: value === chars ? 'rgba(79,70,229,0.2)' : 'transparent',
-            color: value === chars ? '#fff' : '#999',
+            border: `1px solid ${value === chars ? 'var(--color-accent)' : 'var(--color-border-visible)'}`,
+            background: value === chars ? 'var(--color-accent-glow)' : 'transparent',
+            color: value === chars ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
             cursor: 'pointer',
             fontSize: 11,
           }}

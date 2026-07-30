@@ -19,9 +19,11 @@ export default function ControlSection({ label, defaultOpen = true, children }: 
         letterSpacing: '0.05em', textTransform: 'uppercase', cursor: 'pointer',
         transition: 'color 0.15s',
       }}>
-        <motion.span animate={{ rotate: open ? 90 : 0 }} style={{ fontSize: 10, lineHeight: 1 }}>
-          &#9654;
-        </motion.span>
+        <motion.svg animate={{ rotate: open ? 90 : 0 }} width="10" height="10" viewBox="0 0 10 10" fill="none"
+          stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+          style={{ lineHeight: 1, flexShrink: 0 }}>
+          <path d="M3.5 2L6.5 5L3.5 8"/>
+        </motion.svg>
         {label}
       </button>
       <AnimatePresence initial={false}>

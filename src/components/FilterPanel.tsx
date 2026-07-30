@@ -20,11 +20,11 @@ export default function FilterPanel({ activeFilters, filterParams, onChange, onP
     const val = filterParams[filterId]?.[key] ?? def
     return (
       <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <span style={{ color: '#777', fontSize: 10, minWidth: 32 }}>{label}:</span>
+        <span style={{ color: 'var(--color-text-tertiary)', fontSize: 10, minWidth: 32 }}>{label}:</span>
         <input type="range" min={min} max={max} step={step} value={val}
           onChange={e => onParamChange(filterId, key, +e.target.value)}
-          style={{ width: 60, accentColor: '#4f46e5' }} />
-        <span style={{ color: '#999', fontSize: 10, minWidth: 28 }}>{val.toFixed(step < 1 ? 2 : 0)}</span>
+          style={{ width: 60, accentColor: 'var(--color-accent)' }} />
+        <span style={{ color: 'var(--color-text-tertiary)', fontSize: 10, minWidth: 28 }}>{val.toFixed(step < 1 ? 2 : 0)}</span>
       </div>
     )
   }
@@ -45,12 +45,12 @@ export default function FilterPanel({ activeFilters, filterParams, onChange, onP
           <div key={f.id} style={{
             display: 'flex', flexDirection: 'column', gap: 2,
             padding: '3px 6px', borderRadius: 4,
-            background: on ? 'rgba(79,70,229,0.2)' : 'transparent',
-            border: `1px solid ${on ? '#4f46e5' : '#333'}`,
+            background: on ? 'var(--color-accent-glow)' : 'transparent',
+            border: `1px solid ${on ? 'var(--color-accent)' : 'var(--color-border-visible)'}`,
           }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 3, color: '#999', fontSize: 10, cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 3, color: 'var(--color-text-secondary)', fontSize: 10, cursor: 'pointer' }}>
               <input type="checkbox" checked={on} onChange={() => toggle(f.id)}
-                style={{ accentColor: '#4f46e5', margin: 0 }} />
+                style={{ accentColor: 'var(--color-accent)', margin: 0 }} />
               {f.label}
             </label>
             {on && (

@@ -25,7 +25,7 @@ export default function ModeToggle({ value, onChange }: Props) {
         return (
           <button key={m.id} onClick={() => onChange(m.id)} style={{
             position: 'relative', padding: '6px 16px', border: 'none',
-            background: 'transparent', color: active ? '#fff' : 'var(--color-text-secondary)',
+            background: 'transparent', color: active ? '#000' : 'var(--color-text-secondary)',
             fontSize: 13, fontWeight: 500, borderRadius: 'var(--radius-pill)',
             cursor: 'pointer', transition: 'color 0.2s',
           }}>

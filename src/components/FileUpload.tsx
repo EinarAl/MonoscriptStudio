@@ -5,9 +5,10 @@ interface Props {
   onFile: (file: File, dataUrl: string) => void
   hasFile?: boolean
   compact?: boolean
+  label?: string
 }
 
-export default function FileUpload({ accept, onFile, hasFile, compact }: Props) {
+export default function FileUpload({ accept, onFile, hasFile, compact, label }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragOver, setDragOver] = useState(false)
 
@@ -58,7 +59,7 @@ export default function FileUpload({ accept, onFile, hasFile, compact }: Props) 
         </svg>
       ) : (
         <span style={{ color: 'var(--color-text-tertiary)', fontSize: compact ? 11 : 14 }}>
-          {compact ? 'Upload image' : 'Drop file here or click to upload'}
+          {label ?? (compact ? 'Upload image' : 'Drop file here or click to upload')}
         </span>
       )}
     </div>

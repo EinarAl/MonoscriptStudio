@@ -10,18 +10,21 @@ interface Props {
   animationMode: AnimationMode
   spinSpeed: number
   onFrame?: (ascii: string) => void
+  onGrid?: (cols: number, rows: number) => void
 }
 
-export default function ThreeDViewer({ geometry, asciiOptions, animationMode, spinSpeed, onFrame }: Props) {
+export default function ThreeDViewer({ geometry, asciiOptions, animationMode, spinSpeed, onFrame, onGrid }: Props) {
   const containerRef = useRef<HTMLDivElement>(null!)
   const canvasRef = useRef<HTMLCanvasElement>(null!)
   const optsRef = useRef(asciiOptions)
   const onFrameRef = useRef(onFrame)
+  const onGridRef = useRef(onGrid)
   const animModeRef = useRef(animationMode)
   const spinSpeedRef = useRef(spinSpeed)
   const prevColorModeRef = useRef<string | null>(null)
   optsRef.current = asciiOptions
   onFrameRef.current = onFrame
+  onGridRef.current = onGrid
   animModeRef.current = animationMode
   spinSpeedRef.current = spinSpeed
 
@@ -31,7 +34,7 @@ export default function ThreeDViewer({ geometry, asciiOptions, animationMode, sp
     const H = 480
 
     const scene = new THREE.Scene()
-    scene.background = new THREE.Color('#0d0d1a')
+    scene.background = new THREE.Color('#000000')
 
     const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100)
 
@@ -50,7 +53,7 @@ export default function ThreeDViewer({ geometry, asciiOptions, animationMode, sp
     dir2.position.set(-3, -2, -4)
     scene.add(dir2)
 
-    const material = new THREE.MeshLambertMaterial({ color: '#f0e6d0' })
+    const material = new THREE.MeshLambertMaterial({ color: '#cccccc' })
     const mesh = new THREE.Mesh(geometry, material)
     scene.add(mesh)
 
@@ -107,7 +110,7 @@ export default function ThreeDViewer({ geometry, asciiOptions, animationMode, sp
           material.color.set('#ffffff')
         } else {
           material.vertexColors = false
-          material.color.set('#f0e6d0')
+          material.color.set('#cccccc')
         }
         material.needsUpdate = true
       }
@@ -118,6 +121,7 @@ export default function ThreeDViewer({ geometry, asciiOptions, animationMode, sp
         const grid = filter.renderToAscii(scene, camera, opts)
         renderGridToCanvas(grid, opts.bgColor, opts.bgTransparent, 7 * opts.outputScale, 12 * opts.outputScale, canvas, ctx)
         onFrameRef.current?.(gridToPlainText(grid))
+        onGridRef.current?.(grid.cols, grid.rows)
       }
 
       animId = requestAnimationFrame(animate)
@@ -179,11 +183,9 @@ export default function ThreeDViewer({ geometry, asciiOptions, animationMode, sp
 
   return (
     <div ref={containerRef} style={{
-      width: '100%',
-      height: '60vh',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
+      width: '100%', height: '100%', display: 'flex',
+      justifyContent: 'center', alignItems: 'center',
+      background: '#000000',
     }}>
       <canvas
         ref={canvasRef}
