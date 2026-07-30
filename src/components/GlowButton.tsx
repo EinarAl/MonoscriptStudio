@@ -42,6 +42,9 @@ export interface GlowButtonProps {
   type?: 'button' | 'submit' | 'reset'
   style?: CSSProperties
   active?: boolean
+  onDragOver?: (e: React.DragEvent<HTMLButtonElement>) => void
+  onDragLeave?: (e: React.DragEvent<HTMLButtonElement>) => void
+  onDrop?: (e: React.DragEvent<HTMLButtonElement>) => void
 }
 
 const PAD = 20
@@ -128,6 +131,9 @@ const GlowButton = ({
   type = 'button',
   style,
   active = false,
+  onDragOver,
+  onDragLeave,
+  onDrop,
 }: GlowButtonProps) => {
   const btnRef = useRef<HTMLButtonElement>(null)
   const fxRef = useRef<HTMLSpanElement>(null)
@@ -264,6 +270,9 @@ const GlowButton = ({
       type={type}
       disabled={disabled}
       onClick={onClick}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
       className={`specular-button specular-button--${size}${className ? ` ${className}` : ''}`}
       style={{
         '--sb-radius': `${radius}px`,

@@ -380,10 +380,12 @@ export default function StudioPage() {
           <ControlSection label="Generate">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <GlowButton onClick={doGenerate} disabled={!fileLoaded || generating}
-                radius={0} textColor="#000" lineColor="#ffffff" intensity={1.5}
-                style={{ padding: '8px 0', borderRadius: 6, width: '100%',
-                  background: generating ? '#555' : autoUpdate ? '#2a6e3a' : 'var(--color-accent)',
-                  fontSize: 12, fontWeight: 500, border: '1px solid var(--color-accent)' }}>
+                radius={0} textColor="var(--color-text-secondary)" lineColor="#ffffff" intensity={1.5}
+                style={{
+                  width: '100%', padding: '8px 0', fontSize: 12, fontWeight: 500,
+                  border: `1px dashed ${fileLoaded ? 'var(--color-border-visible)' : 'var(--color-border-visible)'}`,
+                  background: 'transparent', boxShadow: 'none', backdropFilter: 'none', WebkitBackdropFilter: 'none',
+                }}>
                 {generating ? `Generating ${progress || '...'}` : autoUpdate ? 'Auto (live)' : fileLoaded ? 'Generate GIF' : 'Upload first'}
               </GlowButton>
               <label style={{ color: 'var(--color-text-secondary)', fontSize: 11, display: 'flex', alignItems: 'center', gap: 3 }}>

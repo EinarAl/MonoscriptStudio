@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
+import GlowButton from './GlowButton'
 
 interface Props {
   accept?: string
@@ -11,7 +12,6 @@ interface Props {
 export default function FileUpload({ accept, onFile, hasFile, compact, label }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragOver, setDragOver] = useState(false)
-  const shineRef = useRef<HTMLDivElement>(null)
 
   const handle = useCallback((file: File) => {
     const reader = new FileReader()
@@ -19,58 +19,37 @@ export default function FileUpload({ accept, onFile, hasFile, compact, label }: 
     reader.readAsDataURL(file)
   }, [onFile])
 
-  const onDrop = useCallback((e: React.DragEvent) => {
+  const onDrop = useCallback((e: React.DragEvent<HTMLButtonElement>) => {
     e.preventDefault()
     setDragOver(false)
     const file = e.dataTransfer.files[0]
     if (file) handle(file)
   }, [handle])
 
-  const diagRef = useRef<HTMLDivElement>(null)
-  const onHover = () => {
-    const s = shineRef.current
-    if (s) { s.style.opacity = '1'; s.style.transform = 'translateX(100%)' }
-    const d = diagRef.current
-    if (d) { d.style.opacity = '1'; d.style.transform = 'translate(100%, 100%)' }
-  }
-  const offHover = () => {
-    const s = shineRef.current
-    if (s) { s.style.opacity = '0'; s.style.transform = 'translateX(-100%)' }
-    const d = diagRef.current
-    if (d) { d.style.opacity = '0'; d.style.transform = 'translate(-100%, -100%)' }
+  const sharedStyle: React.CSSProperties = {
+    width: '100%',
+    border: `1px dashed ${dragOver ? 'var(--color-accent)' : 'var(--color-border-visible)'}`,
+    padding: compact ? '8px 12px' : '3rem 2rem',
+    textAlign: 'center',
+    background: dragOver ? 'var(--color-accent-glow)' : 'transparent',
+    fontSize: compact ? 11 : 14,
+    boxShadow: 'none',
+    backdropFilter: 'none',
+    WebkitBackdropFilter: 'none',
   }
 
   return (
-    <div
-      style={{
-        position: 'relative', overflow: 'hidden', isolation: 'isolate',
-        border: `1px dashed ${dragOver ? 'var(--color-accent)' : 'var(--color-border-visible)'}`,
-        borderRadius: 'var(--radius-btn)',
-        padding: compact ? '8px 12px' : '3rem 2rem',
-        textAlign: 'center',
-        cursor: 'pointer',
-        background: dragOver ? 'var(--color-accent-glow)' : 'transparent',
-        transition: 'all 0.2s',
-      }}
+    <GlowButton
+      radius={0}
+      textColor="var(--color-text-tertiary)"
+      lineColor="#ffffff"
+      intensity={1.5}
+      onClick={() => inputRef.current?.click()}
+      style={sharedStyle}
       onDragOver={e => { e.preventDefault(); setDragOver(true) }}
       onDragLeave={() => setDragOver(false)}
       onDrop={onDrop}
-      onMouseEnter={onHover}
-      onMouseLeave={offHover}
-      onClick={() => inputRef.current?.click()}
     >
-      <div ref={shineRef} style={{
-        position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none',
-        opacity: 0, transform: 'translateX(-100%)',
-        background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 20%, rgba(255,255,255,0.12) 45%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.12) 55%, rgba(255,255,255,0.04) 80%, transparent 100%)',
-        transition: 'opacity 0.25s, transform 0.5s cubic-bezier(0.2, 0.9, 0.3, 1)',
-      }} />
-      <div ref={diagRef} className="specular-shine-diag" style={{
-        position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none',
-        opacity: 0, transform: 'translate(-100%, -100%)',
-        background: 'linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.06) 50%, transparent 70%)',
-        transition: 'opacity 0.3s, transform 0.7s cubic-bezier(0.2, 0.9, 0.3, 1)',
-      }} />
       <input
         ref={inputRef}
         type="file"
@@ -88,10 +67,8 @@ export default function FileUpload({ accept, onFile, hasFile, compact, label }: 
           <path d="M20 6 9 17l-5-5"/>
         </svg>
       ) : (
-        <span style={{ color: 'var(--color-text-tertiary)', fontSize: compact ? 11 : 14 }}>
-          {label ?? (compact ? 'Upload image' : 'Drop file here or click to upload')}
-        </span>
+        <span>{label ?? (compact ? 'Upload image' : 'Drop file here or click to upload')}</span>
       )}
-    </div>
+    </GlowButton>
   )
 }
