@@ -4,9 +4,10 @@ interface Props {
   accept?: string
   onFile: (file: File, dataUrl: string) => void
   hasFile?: boolean
+  compact?: boolean
 }
 
-export default function FileUpload({ accept, onFile, hasFile }: Props) {
+export default function FileUpload({ accept, onFile, hasFile, compact }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragOver, setDragOver] = useState(false)
 
@@ -26,12 +27,12 @@ export default function FileUpload({ accept, onFile, hasFile }: Props) {
   return (
     <div
       style={{
-        border: `2px dashed ${dragOver ? '#4f46e5' : '#444'}`,
-        borderRadius: 12,
-        padding: '3rem 2rem',
+        border: `1px dashed ${dragOver ? 'var(--color-accent)' : 'var(--color-border-visible)'}`,
+        borderRadius: 'var(--radius-btn)',
+        padding: compact ? '8px 12px' : '3rem 2rem',
         textAlign: 'center',
         cursor: 'pointer',
-        background: dragOver ? 'rgba(79,70,229,0.08)' : 'transparent',
+        background: dragOver ? 'var(--color-accent-glow)' : 'transparent',
         transition: 'all 0.2s',
       }}
       onDragOver={e => { e.preventDefault(); setDragOver(true) }}
@@ -50,14 +51,15 @@ export default function FileUpload({ accept, onFile, hasFile }: Props) {
         }}
       />
       {hasFile ? (
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style={{ display: 'block', margin: '0 auto' }}>
+        <svg width={compact ? 20 : 40} height={compact ? 20 : 40} viewBox="0 0 24 24" fill="none"
+          stroke="var(--color-accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+          style={{ display: 'block', margin: '0 auto' }}>
           <path d="M20 6 9 17l-5-5"/>
         </svg>
       ) : (
-        <>
-          <p style={{ color: '#999', margin: 0 }}>Drop file here or click to upload</p>
-          {accept && <p style={{ color: '#666', fontSize: 12, margin: '4px 0 0' }}>Accepts: {accept}</p>}
-        </>
+        <span style={{ color: 'var(--color-text-tertiary)', fontSize: compact ? 11 : 14 }}>
+          {compact ? 'Upload image' : 'Drop file here or click to upload'}
+        </span>
       )}
     </div>
   )
