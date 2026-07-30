@@ -2,8 +2,8 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { presets } from '../lib/filters'
 import type { PresetDef } from '../lib/filters'
-import AnimatedRow from './AnimatedRow'
-import SpecularButton from './SpecularButton'
+import AnimatedRow, { useRowHover } from './AnimatedRow'
+import GlowButton from './GlowButton'
 import RangeSlider from './RangeSlider'
 
 interface Props {
@@ -26,6 +26,15 @@ export default function PresetManager({ value, strength, onChange, onStrengthCha
   const importRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(customPresets)) }, [customPresets])
+
+  function RowLabel({ children, on }: { children: string; on: boolean }) {
+    const hovered = useRowHover()
+    return (
+      <span style={{ fontSize: 12, color: hovered ? 'var(--color-text-primary)' : on ? 'var(--color-text-primary)' : 'var(--color-text-secondary)' }}>
+        {children}
+      </span>
+    )
+  }
 
   const toggle = (id: string) => {
     onChange(value.includes(id) ? value.filter(v => v !== id) : [...value, id])
@@ -85,13 +94,7 @@ export default function PresetManager({ value, strength, onChange, onStrengthCha
               <span style={{ color: 'var(--color-text-tertiary)', fontSize: 7, flexShrink: 0 }}>
                 {on ? '\u25CF' : '\u25CB'}
               </span>
-              <motion.span
-                whileHover={{ color: 'var(--color-text-primary)' }}
-                style={{ fontSize: 12, color: on ? 'var(--color-text-primary)' : 'var(--color-text-secondary)' }}
-              >
-                {p.label}
-              </motion.span>
-              <span style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--color-text-tertiary)' }}>built-in</span>
+              <RowLabel on={on}>{p.label}</RowLabel>
               {on && (
                 <span style={{ color: 'var(--color-text-tertiary)', fontSize: 9, marginLeft: 4 }}>
                   {((strength[p.id] ?? 1) * 100).toFixed(0)}%
@@ -120,12 +123,7 @@ export default function PresetManager({ value, strength, onChange, onStrengthCha
             <span style={{ color: 'var(--color-text-tertiary)', fontSize: 7, flexShrink: 0 }}>
               {value.includes(p.id) ? '\u25CF' : '\u25CB'}
             </span>
-            <motion.span
-              whileHover={{ color: 'var(--color-text-primary)' }}
-              style={{ fontSize: 12, color: value.includes(p.id) ? 'var(--color-text-primary)' : 'var(--color-text-secondary)' }}
-            >
-              {p.label}
-            </motion.span>
+            <RowLabel on={value.includes(p.id)}>{p.label}</RowLabel>
             <button onClick={e => { e.stopPropagation(); deleteCustom(p.id) }}
               style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--color-text-tertiary)', cursor: 'pointer', fontSize: 13, padding: '0 2px', lineHeight: 1 }}>
               ×
@@ -153,20 +151,25 @@ export default function PresetManager({ value, strength, onChange, onStrengthCha
       ))}
       <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--color-border-subtle)' }}>
         {saving ? (
-          <div style={{ display: 'flex', gap: 4 }}>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             <input value={saveName} onChange={e => setSaveName(e.target.value)}
               placeholder="Preset name"
               onKeyDown={e => e.key === 'Enter' && saveCurrent()}
-              style={{ flex: 1, background: 'var(--color-surface-base)', border: '1px solid var(--color-border-visible)', borderRadius: 4, padding: '3px 6px', fontSize: 11, color: 'var(--color-text-primary)', outline: 'none' }}
+              style={{ flex: 1, minWidth: 60, background: 'var(--color-surface-base)', border: '1px solid var(--color-border-visible)', borderRadius: 4, padding: '3px 6px', fontSize: 11, color: 'var(--color-text-primary)', outline: 'none' }}
               autoFocus />
-            <SpecularButton onClick={saveCurrent} active>Save</SpecularButton>
-            <SpecularButton onClick={() => { setSaving(false); setSaveName('') }}>Cancel</SpecularButton>
+            <GlowButton onClick={saveCurrent} active
+              radius={0} style={{ padding: '4px 10px', fontSize: 11 }}>Save</GlowButton>
+            <GlowButton onClick={() => { setSaving(false); setSaveName('') }}
+              radius={0} style={{ padding: '4px 10px', fontSize: 11 }}>Cancel</GlowButton>
           </div>
         ) : (
-          <div style={{ display: 'flex', gap: 4 }}>
-            <SpecularButton onClick={() => setSaving(true)}>Save Current</SpecularButton>
-            <SpecularButton onClick={handleExport}>Export</SpecularButton>
-            <SpecularButton onClick={() => importRef.current?.click()}>Import</SpecularButton>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+            <GlowButton onClick={() => setSaving(true)}
+              radius={0} style={{ padding: '4px 10px', fontSize: 11 }}>Save Current</GlowButton>
+            <GlowButton onClick={handleExport}
+              radius={0} style={{ padding: '4px 10px', fontSize: 11 }}>Export</GlowButton>
+            <GlowButton onClick={() => importRef.current?.click()}
+              radius={0} style={{ padding: '4px 10px', fontSize: 11 }}>Import</GlowButton>
             <input ref={importRef} type="file" accept=".json" onChange={handleImport} hidden />
           </div>
         )}

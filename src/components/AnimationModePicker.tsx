@@ -23,9 +23,9 @@ export default function AnimationModePicker({ value, onChange }: Props) {
           style={{
             padding: '4px 10px',
             borderRadius: 6,
-            border: `1px solid ${value === m.value ? '#4f46e5' : '#333'}`,
-            background: value === m.value ? 'rgba(79,70,229,0.2)' : 'transparent',
-            color: value === m.value ? '#fff' : '#999',
+            border: `1px solid ${value === m.value ? 'var(--color-accent)' : 'var(--color-border-visible)'}`,
+            background: value === m.value ? 'var(--color-accent-glow)' : 'transparent',
+            color: value === m.value ? '#fff' : 'var(--color-text-secondary)',
             cursor: 'pointer',
             fontSize: 11,
           }}

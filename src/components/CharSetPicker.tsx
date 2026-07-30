@@ -1,4 +1,5 @@
 import { PRESETS } from '../types'
+import GlowButton from './GlowButton'
 
 interface Props {
   value: string
@@ -10,21 +11,10 @@ export default function CharSetPicker({ value, onChange }: Props) {
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
       <label style={{ color: 'var(--color-text-secondary)', fontSize: 11 }}>Charset:</label>
       {Object.entries(PRESETS).map(([name, chars]) => (
-        <button
-          key={name}
-          onClick={() => onChange(chars)}
-          style={{
-            padding: '4px 10px',
-            borderRadius: 6,
-            border: `1px solid ${value === chars ? 'var(--color-accent)' : 'var(--color-border-visible)'}`,
-            background: value === chars ? 'var(--color-accent-glow)' : 'transparent',
-            color: value === chars ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
-            cursor: 'pointer',
-            fontSize: 11,
-          }}
-        >
+        <GlowButton key={name} onClick={() => onChange(chars)} active={value === chars}
+          radius={0} style={{ padding: '4px 10px', fontSize: 11, flex: 'none' }}>
           {name}
-        </button>
+        </GlowButton>
       ))}
     </div>
   )

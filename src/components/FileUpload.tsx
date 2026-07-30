@@ -11,6 +11,7 @@ interface Props {
 export default function FileUpload({ accept, onFile, hasFile, compact, label }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragOver, setDragOver] = useState(false)
+  const shineRef = useRef<HTMLDivElement>(null)
 
   const handle = useCallback((file: File) => {
     const reader = new FileReader()
@@ -25,9 +26,19 @@ export default function FileUpload({ accept, onFile, hasFile, compact, label }: 
     if (file) handle(file)
   }, [handle])
 
+  const onHover = () => {
+    const s = shineRef.current
+    if (s) { s.style.opacity = '1'; s.style.transform = 'translateX(100%)' }
+  }
+  const offHover = () => {
+    const s = shineRef.current
+    if (s) { s.style.opacity = '0'; s.style.transform = 'translateX(-100%)' }
+  }
+
   return (
     <div
       style={{
+        position: 'relative', overflow: 'hidden', isolation: 'isolate',
         border: `1px dashed ${dragOver ? 'var(--color-accent)' : 'var(--color-border-visible)'}`,
         borderRadius: 'var(--radius-btn)',
         padding: compact ? '8px 12px' : '3rem 2rem',
@@ -39,8 +50,16 @@ export default function FileUpload({ accept, onFile, hasFile, compact, label }: 
       onDragOver={e => { e.preventDefault(); setDragOver(true) }}
       onDragLeave={() => setDragOver(false)}
       onDrop={onDrop}
+      onMouseEnter={onHover}
+      onMouseLeave={offHover}
       onClick={() => inputRef.current?.click()}
     >
+      <div ref={shineRef} style={{
+        position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none',
+        opacity: 0, transform: 'translateX(-100%)',
+        background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%)',
+        transition: 'opacity 0.25s, transform 0.5s cubic-bezier(0.2, 0.9, 0.3, 1)',
+      }} />
       <input
         ref={inputRef}
         type="file"

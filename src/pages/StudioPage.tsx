@@ -6,6 +6,7 @@ import ControlSection from '../components/ControlSection'
 import AnimatedSlider from '../components/AnimatedSlider'
 import ThreeDViewer from '../components/ThreeDViewer'
 import CharSetPicker from '../components/CharSetPicker'
+import GlowButton from '../components/GlowButton'
 import FilterList from '../components/FilterList'
 import PresetManager from '../components/PresetManager'
 import FileUpload from '../components/FileUpload'
@@ -29,7 +30,8 @@ export default function StudioPage() {
   const [mode, setMode] = useState<Mode>('3d')
   const [opts, setOpts] = useState<AsciiOptions>({ ...DEFAULT_ASCII_OPTIONS })
   const [geometry, setGeometry] = useState<THREE.BufferGeometry>(() => makeDefaultGeometry())
-  const [animationMode] = useState<'spin' | 'tilt' | 'drag'>('tilt')
+  const [animationMode, setAnimationMode] = useState<'spin' | 'tilt' | 'drag'>('tilt')
+  const [spinSpeed, setSpinSpeed] = useState(1)
   const [depthRatio, setDepthRatio] = useState(0.35)
   const [fileLoaded, setFileLoaded] = useState(false)
   const [imageData, setImageData] = useState<ImageData | null>(null)
@@ -282,10 +284,21 @@ export default function StudioPage() {
           <ControlSection label="Sampling">
             <AnimatedSlider label="Width" value={opts.width} min={10} max={160} step={1} onChange={v => updateOpt('width', v)} />
             <AnimatedSlider label="Scale" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
-            <AnimatedSlider label="Height" value={opts.heightScale} min={0.2} max={2} step={0.05} onChange={v => updateOpt('heightScale', v)} format={v => v.toFixed(2)} />
+            <AnimatedSlider label="H Scale" value={opts.heightScale} min={0.2} max={2} step={0.05} onChange={v => updateOpt('heightScale', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Density" value={opts.densityBias} min={0.2} max={3} step={0.05} onChange={v => updateOpt('densityBias', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Depth" value={depthRatio} min={0.1} max={1} step={0.05} onChange={setDepthRatio} format={v => v.toFixed(2)} />
             <CharSetPicker value={opts.charset} onChange={v => updateOpt('charset', v)} />
+          </ControlSection>
+          <ControlSection label="Controls">
+            <div style={{ display: 'flex', gap: 6 }}>
+              {(['spin', 'tilt', 'drag'] as const).map(m => (
+                <GlowButton key={m} onClick={() => setAnimationMode(m)} active={animationMode === m}
+                  radius={0} style={{ padding: '4px 8px', fontSize: 10, fontWeight: 500 }}>
+                  {m === 'spin' ? 'Auto-Spin' : m === 'tilt' ? 'Mouse Tilt' : 'Click-Drag'}
+                </GlowButton>
+              ))}
+            </div>
+            <AnimatedSlider label="Spin Speed" value={spinSpeed} min={0.1} max={5} step={0.1} onChange={setSpinSpeed} format={v => v.toFixed(1)} />
           </ControlSection>
           <ControlSection label="Tone">
             <AnimatedSlider label="Bright" value={opts.brightness} min={-100} max={100} step={1} onChange={v => updateOpt('brightness', v)} />
@@ -295,13 +308,10 @@ export default function StudioPage() {
           <ControlSection label="Color">
             <div style={{ display: 'flex', gap: 6 }}>
               {colorModes.map(m => (
-                <button key={m} onClick={() => updateOpt('colorMode', m)} style={{
-                  flex: 1, padding: '4px 8px', borderRadius: 6, border: '1px solid',
-                  borderColor: opts.colorMode === m ? 'var(--color-accent)' : 'var(--color-border-visible)',
-                  background: opts.colorMode === m ? 'var(--color-accent-glow)' : 'transparent',
-                  color: opts.colorMode === m ? '#fff' : 'var(--color-text-secondary)',
-                  fontSize: 11, fontWeight: 500, cursor: 'pointer',
-                }}>{m}</button>
+                <GlowButton key={m} onClick={() => updateOpt('colorMode', m)} active={opts.colorMode === m}
+                  radius={0} style={{ padding: '4px 8px', fontSize: 11, fontWeight: 500 }}>
+                  {m}
+                </GlowButton>
               ))}
             </div>
           </ControlSection>
@@ -313,6 +323,7 @@ export default function StudioPage() {
           <ControlSection label="Sampling">
             <AnimatedSlider label="Width" value={opts.width} min={10} max={160} step={1} onChange={v => updateOpt('width', v)} />
             <AnimatedSlider label="Scale" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
+            <AnimatedSlider label="H Scale" value={opts.heightScale} min={0.2} max={2} step={0.05} onChange={v => updateOpt('heightScale', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Duration" value={opts.duration} min={1} max={10} step={1} onChange={v => updateOpt('duration', v)} format={v => `${v}s`} />
             <AnimatedSlider label="FPS" value={opts.fps} min={5} max={30} step={5} onChange={v => updateOpt('fps', v)} />
             <CharSetPicker value={opts.charset} onChange={v => updateOpt('charset', v)} />
@@ -369,21 +380,26 @@ export default function StudioPage() {
           <ControlSection label="Generate">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <button onClick={doGenerate} disabled={!fileLoaded || generating}
-                style={{ padding: '8px 0', borderRadius: 6, border: 'none', width: '100%',
+                style={{ position: 'relative', overflow: 'hidden', isolation: 'isolate',
+                  padding: '8px 0', borderRadius: 6, border: 'none', width: '100%',
                   background: generating ? '#555' : autoUpdate ? '#2a6e3a' : 'var(--color-accent)',
                   color: '#000', cursor: fileLoaded && !generating ? 'pointer' : 'default',
-                  fontSize: 12, fontWeight: 500 }}>
-                {generating ? `Generating ${progress || '...'}` : autoUpdate ? 'Auto (live)' : fileLoaded ? 'Generate GIF' : 'Upload first'}
+                  fontSize: 12, fontWeight: 500 }}
+                onMouseEnter={e => { const s = e.currentTarget.querySelector('.spec') as HTMLDivElement; if (s) { s.style.opacity = '1'; s.style.transform = 'translateX(100%)' } }}
+                onMouseLeave={e => { const s = e.currentTarget.querySelector('.spec') as HTMLDivElement; if (s) { s.style.opacity = '0'; s.style.transform = 'translateX(-100%)' } }}>
+                <div className="spec" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0, transform: 'translateX(-100%)', background: 'linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.1) 50%,transparent 100%)', transition: 'opacity 0.25s, transform 0.5s cubic-bezier(0.2,0.9,0.3,1)' }} />
+                <span style={{ position: 'relative', zIndex: 1 }}>{generating ? `Generating ${progress || '...'}` : autoUpdate ? 'Auto (live)' : fileLoaded ? 'Generate GIF' : 'Upload first'}</span>
               </button>
               <label style={{ color: 'var(--color-text-secondary)', fontSize: 11, display: 'flex', alignItems: 'center', gap: 3 }}>
                 <input type="checkbox" checked={autoUpdate} onChange={e => setAutoUpdate(e.target.checked)} /> Auto-update
               </label>
               {gifDownloadUrl && (
                 <a href={gifDownloadUrl} download={gifDownloadName}
-                  style={{ display: 'block', padding: '6px 0', borderRadius: 6, width: '100%', textAlign: 'center',
-                    border: '1px solid var(--color-accent)', color: 'var(--color-accent)',
-                    textDecoration: 'none', fontSize: 11 }}>
-                  {gifDone && gifUrl ? 'Download GIF' : 'Download Preview'}
+                  style={{ position: 'relative', overflow: 'hidden', isolation: 'isolate', display: 'block', padding: '6px 0', borderRadius: 6, width: '100%', textAlign: 'center', border: '1px solid var(--color-accent)', color: 'var(--color-accent)', textDecoration: 'none', fontSize: 11 }}
+                  onMouseEnter={e => { const s = e.currentTarget.querySelector('.spec') as HTMLDivElement; if (s) { s.style.opacity = '1'; s.style.transform = 'translateX(100%)' } }}
+                  onMouseLeave={e => { const s = e.currentTarget.querySelector('.spec') as HTMLDivElement; if (s) { s.style.opacity = '0'; s.style.transform = 'translateX(-100%)' } }}>
+                  <div className="spec" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0, transform: 'translateX(-100%)', background: 'linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.08) 50%,transparent 100%)', transition: 'opacity 0.25s, transform 0.5s cubic-bezier(0.2,0.9,0.3,1)' }} />
+                  <span style={{ position: 'relative', zIndex: 1 }}>{gifDone && gifUrl ? 'Download GIF' : 'Download Preview'}</span>
                 </a>
               )}
             </div>
@@ -391,13 +407,10 @@ export default function StudioPage() {
           <ControlSection label="Color" defaultOpen={false}>
             <div style={{ display: 'flex', gap: 6 }}>
               {colorModes.map(m => (
-                <button key={m} onClick={() => updateOpt('colorMode', m)} style={{
-                  flex: 1, padding: '4px 8px', borderRadius: 6, border: '1px solid',
-                  borderColor: opts.colorMode === m ? 'var(--color-accent)' : 'var(--color-border-visible)',
-                  background: opts.colorMode === m ? 'var(--color-accent-glow)' : 'transparent',
-                  color: opts.colorMode === m ? '#fff' : 'var(--color-text-secondary)',
-                  fontSize: 11, fontWeight: 500, cursor: 'pointer',
-                }}>{m}</button>
+                <GlowButton key={m} onClick={() => updateOpt('colorMode', m)} active={opts.colorMode === m}
+                  radius={0} style={{ padding: '4px 8px', fontSize: 11, fontWeight: 500 }}>
+                  {m}
+                </GlowButton>
               ))}
             </div>
           </ControlSection>
@@ -421,13 +434,10 @@ export default function StudioPage() {
           <ControlSection label="Color" defaultOpen={false}>
             <div style={{ display: 'flex', gap: 6 }}>
               {colorModes.map(m => (
-                <button key={m} onClick={() => updateOpt('colorMode', m)} style={{
-                  flex: 1, padding: '4px 8px', borderRadius: 6, border: '1px solid',
-                  borderColor: opts.colorMode === m ? 'var(--color-accent)' : 'var(--color-border-visible)',
-                  background: opts.colorMode === m ? 'var(--color-accent-glow)' : 'transparent',
-                  color: opts.colorMode === m ? '#fff' : 'var(--color-text-secondary)',
-                  fontSize: 11, fontWeight: 500, cursor: 'pointer',
-                }}>{m}</button>
+                <GlowButton key={m} onClick={() => updateOpt('colorMode', m)} active={opts.colorMode === m}
+                  radius={0} style={{ padding: '4px 8px', fontSize: 11, fontWeight: 500 }}>
+                  {m}
+                </GlowButton>
               ))}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
@@ -452,10 +462,13 @@ export default function StudioPage() {
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                 {['txt', 'html', 'svg', 'json', 'png'].map(f => (
                   <button key={f} onClick={() => handleStaticExport(f)}
-                    style={{ flex: 1, padding: '5px 0', borderRadius: 4, minWidth: 40,
+                    style={{ position: 'relative', overflow: 'hidden', isolation: 'isolate', flex: 1, padding: '5px 0', borderRadius: 4, minWidth: 40,
                       border: '1px solid var(--color-accent)', background: 'transparent',
-                      color: 'var(--color-accent)', cursor: 'pointer', fontSize: 10, fontWeight: 500 }}>
-                    .{f}
+                      color: 'var(--color-accent)', cursor: 'pointer', fontSize: 10, fontWeight: 500 }}
+                    onMouseEnter={e => { const s = e.currentTarget.querySelector('.spec') as HTMLDivElement; if (s) { s.style.opacity = '1'; s.style.transform = 'translateX(100%)' } }}
+                    onMouseLeave={e => { const s = e.currentTarget.querySelector('.spec') as HTMLDivElement; if (s) { s.style.opacity = '0'; s.style.transform = 'translateX(-100%)' } }}>
+                    <div className="spec" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0, transform: 'translateX(-100%)', background: 'linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.08) 50%,transparent 100%)', transition: 'opacity 0.25s, transform 0.5s cubic-bezier(0.2,0.9,0.3,1)' }} />
+                    <span style={{ position: 'relative', zIndex: 1 }}>.{f}</span>
                   </button>
                 ))}
               </div>
@@ -502,7 +515,7 @@ export default function StudioPage() {
                   geometry={geometry}
                   asciiOptions={opts}
                   animationMode={animationMode}
-                  spinSpeed={1}
+                  spinSpeed={spinSpeed}
                   onGrid={handle3dGrid}
                 />
               )}

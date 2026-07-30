@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { filters } from '../lib/filters'
-import AnimatedRow from './AnimatedRow'
+import AnimatedRow, { useRowHover } from './AnimatedRow'
 import RangeSlider from './RangeSlider'
 
 interface Props {
@@ -10,17 +10,24 @@ interface Props {
   onParamChange: (filterId: string, key: string, value: number) => void
 }
 
+function RowLabel({ children, on }: { children: string; on: boolean }) {
+  const hovered = useRowHover()
+  return (
+    <span style={{
+      fontSize: 12,
+      color: hovered ? 'var(--color-text-primary)' : on ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+    }}>
+      {children}
+    </span>
+  )
+}
+
 export default function FilterList({ activeFilters, filterParams, onChange, onParamChange }: Props) {
   const toggle = (id: string) => {
     onChange(activeFilters.includes(id)
       ? activeFilters.filter(v => v !== id)
       : [...activeFilters, id])
   }
-
-  const labelStyle = (on: boolean): React.CSSProperties => ({
-    fontSize: 12,
-    color: on ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-  })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -38,12 +45,7 @@ export default function FilterList({ activeFilters, filterParams, onChange, onPa
               <span style={{ color: 'var(--color-text-tertiary)', fontSize: 7, flexShrink: 0 }}>
                 {on ? '\u25CF' : '\u25CB'}
               </span>
-              <motion.span
-                whileHover={{ color: 'var(--color-text-primary)' }}
-                style={labelStyle(on)}
-              >
-                {f.label}
-              </motion.span>
+              <RowLabel on={on}>{f.label}</RowLabel>
               {on && (
                 <span style={{ marginLeft: 'auto', color: 'var(--color-text-tertiary)', fontSize: 9 }}>
                   {(filterParams[f.id]?.intensity ?? 1) * 100}%
