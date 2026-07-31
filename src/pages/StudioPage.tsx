@@ -15,8 +15,9 @@ import GifAsciiPage from './GifAsciiPage'
 import StaticAsciiPage from './StaticAsciiPage'
 import { generateAsciiGif } from '../lib/gifAscii'
 import { imageToAsciiGrid, gridToPlainText, gridToHtml, gridToSvg, gridToJson, renderGridToCanvas, removeBackground } from '../lib/imageToAscii'
-import { extrudeSvg } from '../lib/svgTo3D'
+import { extrudeSvg, extractPointCloud } from '../lib/svgTo3D'
 import { pixelGridToGeometry } from '../lib/pixelTo3D'
+import { generateTerminalScript } from '../lib/terminalExporter'
 import { DEFAULT_ASCII_OPTIONS } from '../types'
 import type { AsciiOptions, AsciiGrid, ColorMode } from '../types'
 
@@ -35,6 +36,7 @@ export default function StudioPage() {
   const [animationMode, setAnimationMode] = useState<'spin' | 'tilt' | 'drag'>('tilt')
   const [spinSpeed, setSpinSpeed] = useState(1)
   const [depthRatio, setDepthRatio] = useState(0.35)
+  const [terminalSampleCount, setTerminalSampleCount] = useState(5000)
   const [fileLoaded, setFileLoaded] = useState(false)
   const [imageData, setImageData] = useState<ImageData | null>(null)
   const [sourceImageData, setSourceImageData] = useState<ImageData | null>(null)
@@ -282,6 +284,20 @@ export default function StudioPage() {
     setGridInfo({ cols, rows })
   }, [])
 
+  /* Terminal export */
+  const handleTerminalExport = useCallback(() => {
+    const g = geometry
+    if (!g) return
+    const pts = extractPointCloud(g, terminalSampleCount)
+    if (pts.length === 0) return
+    const script = generateTerminalScript(pts, opts.width)
+    const blob = new Blob([script], { type: 'text/javascript' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = 'logo.js'; a.click()
+    URL.revokeObjectURL(url)
+  }, [geometry, terminalSampleCount, opts.width])
+
   /* GIF download */
   const gifDownloadUrl = gifDone && gifUrl ? gifUrl : previewUrl
   const gifDownloadName = gifDone && gifUrl ? 'ascii.gif' : 'ascii-preview.png'
@@ -366,6 +382,16 @@ export default function StudioPage() {
               ))}
             </div>
           </ControlSection>
+          <ControlSection label="Export" defaultOpen={false}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <GlowButton onClick={handleTerminalExport}
+                radius={0} textColor="var(--color-text-secondary)" lineColor="#ffffff" intensity={1.5}
+                style={{ width: '100%', padding: '6px 0', fontSize: 11, fontWeight: 500, border: '1px dashed var(--color-border-visible)', background: 'transparent' }}>
+                Download Terminal Script
+              </GlowButton>
+              <AnimatedSlider label="Samples" value={terminalSampleCount} min={500} max={30000} step={500} onChange={setTerminalSampleCount} format={v => v.toString()} />
+            </div>
+          </ControlSection>
         </>
       )}
 
@@ -444,7 +470,7 @@ export default function StudioPage() {
               </label>
               {gifDownloadUrl && (
                 <GlowButton onClick={() => { const a = document.createElement('a'); a.href = gifDownloadUrl; a.download = gifDownloadName; a.click() }}
-                  radius={0} textColor="var(--color-text-secondary)" lineColor="#ffffff" intensity={1.5}
+                  radius={0} textColor="var(--color-text-secondary)"
                   style={{ width: '100%', padding: '8px 0', fontSize: 12, fontWeight: 500, border: '1px dashed var(--color-border-visible)', background: 'transparent' }}>
                   {gifDone && gifUrl ? 'Download GIF' : 'Download Preview'}
                 </GlowButton>
@@ -509,7 +535,7 @@ export default function StudioPage() {
               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                 {['txt', 'html', 'svg', 'json', 'png'].map(f => (
                   <GlowButton key={f} onClick={() => handleStaticExport(f)}
-                    radius={0} textColor="var(--color-text-secondary)" lineColor="#ffffff" intensity={1.5}
+                    radius={0} textColor="var(--color-text-secondary)"
                     style={{ padding: '5px 0', minWidth: 40, fontSize: 10, fontWeight: 500, border: '1px solid var(--color-accent)', background: 'transparent', boxShadow: 'none' }}>
                     .{f}
                   </GlowButton>

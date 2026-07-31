@@ -31,17 +31,16 @@ export default function FileUpload({ accept, onFile, hasFile, compact, label }: 
     border: `1px dashed ${dragOver ? 'var(--color-accent)' : 'var(--color-border-visible)'}`,
     padding: compact ? '8px 12px' : '3rem 2rem',
     textAlign: 'center',
-    background: dragOver ? 'var(--color-accent-glow)' : 'var(--color-surface-base)',
+    background: dragOver ? 'var(--color-accent-glow)' : 'transparent',
     fontSize: compact ? 11 : 14,
   }
 
   return (
     <GlowButton
       radius={0}
-      textColor="var(--color-text-tertiary)"
+      textColor="var(--color-text-secondary)"
       lineColor="#ffffff"
       intensity={1.5}
-      bgColor={dragOver ? '#222222' : '#0f0f0f'}
       onClick={() => inputRef.current?.click()}
       style={sharedStyle as any}
       onDragOver={e => { e.preventDefault(); setDragOver(true) }}
