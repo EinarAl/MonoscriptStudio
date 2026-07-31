@@ -1,4 +1,5 @@
 import { useRef, useCallback, useEffect, useState } from 'react'
+import GlowButton from './GlowButton'
 
 interface Props {
   grid: string[][]
@@ -52,7 +53,7 @@ export default function PixelEditor({ grid, onChange, visible }: Props) {
         ctx.strokeRect(c * CELL, r * CELL, CELL, CELL)
       }
     }
-  }, [grid])
+  }, [grid, visible])
 
   const getCell = useCallback((clientX: number, clientY: number) => {
     const canvas = canvasRef.current
@@ -120,16 +121,14 @@ export default function PixelEditor({ grid, onChange, visible }: Props) {
 
   const rows = grid.length || SIZE
   const cols = grid[0]?.length || SIZE
+  const hasContent = grid.length > 0 && grid.some(row => row.some(v => v !== ''))
 
   const toolBtn = (t: Tool, label: string) => (
-    <button onClick={() => setTool(t)}
-      style={{
-        padding: '3px 8px', borderRadius: 4, fontSize: 10,
-        border: `1px solid ${tool === t ? 'var(--color-accent)' : 'var(--color-border-visible)'}`,
-        background: tool === t ? 'rgba(255,255,255,0.1)' : 'transparent',
-        color: tool === t ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-        cursor: 'pointer',
-      }}>{label}</button>
+    <GlowButton onClick={() => setTool(t)} active={tool === t}
+      radius={0} textColor="var(--color-text-secondary)" lineColor="#ffffff" intensity={1.5}
+      style={{ padding: '3px 8px', fontSize: 10, fontWeight: 500 }}>
+      {label}
+    </GlowButton>
   )
 
   return (
@@ -144,12 +143,11 @@ export default function PixelEditor({ grid, onChange, visible }: Props) {
         {toolBtn('draw', 'Draw')}
         {toolBtn('erase', 'Erase')}
         {toolBtn('eyedrop', 'Pick')}
-        <button onClick={clear} style={{
-          padding: '3px 8px', borderRadius: 4, fontSize: 10,
-          border: '1px solid var(--color-border-visible)',
-          background: 'transparent',
-          color: 'var(--color-text-tertiary)', cursor: 'pointer',
-        }}>Clear</button>
+        <GlowButton onClick={clear} disabled={!hasContent}
+          radius={0} textColor="var(--color-text-secondary)" lineColor="#ffffff" intensity={1.5}
+          style={{ padding: '3px 8px', fontSize: 10, fontWeight: 500 }}>
+          Clear
+        </GlowButton>
         <div style={{ display: 'flex', alignItems: 'center', gap: 2, marginLeft: 'auto' }}>
           <input type="color" value={color} onChange={e => setColor(e.target.value)}
             style={{ width: 22, height: 22, padding: 0, border: '1px solid var(--color-border-visible)', cursor: 'pointer', background: 'transparent', borderRadius: 3 }} />
@@ -163,7 +161,7 @@ export default function PixelEditor({ grid, onChange, visible }: Props) {
         style={{
           border: '1px solid var(--color-border-visible)',
           borderRadius: 4,
-          cursor: tool === 'eyedrop' ? 'copy' : tool === 'erase' ? 'not-allowed' : 'crosshair',
+          cursor: tool === 'eyedrop' ? 'copy' : 'crosshair',
           imageRendering: 'pixelated',
           maxWidth: '100%',
           display: 'block',

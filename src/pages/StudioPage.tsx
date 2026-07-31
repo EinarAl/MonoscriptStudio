@@ -126,24 +126,26 @@ export default function StudioPage() {
       setPixelGrid(empty)
       pixelGridRef.current = empty
     }
-    if (!next) {
-      if (svgRef.current) {
-        loadGeometryFromSvg(svgRef.current, depthRatio)
-      } else {
-        setGeometry(makeDefaultGeometry())
-      }
-    }
-  }, [showPixelArt, pixelGrid, depthRatio, loadGeometryFromSvg])
+  }, [showPixelArt, pixelGrid])
 
   const handlePixelGridChange = useCallback((grid: string[][]) => {
     setPixelGrid(grid)
     pixelGridRef.current = grid
     clearTimeout(pixelDebounceRef.current)
     pixelDebounceRef.current = window.setTimeout(() => {
-      const geo = pixelGridToGeometry(grid, 4, depthRatio)
-      if (geo) setGeometry(geo)
+      const hasContent = grid.some(row => row.some(v => v !== ''))
+      if (hasContent) {
+        const geo = pixelGridToGeometry(grid, 4, depthRatio)
+        if (geo) setGeometry(geo)
+      } else {
+        if (svgRef.current) {
+          loadGeometryFromSvg(svgRef.current, depthRatio)
+        } else {
+          setGeometry(makeDefaultGeometry())
+        }
+      }
     }, 150)
-  }, [depthRatio])
+  }, [depthRatio, loadGeometryFromSvg])
 
   const handleFile = useCallback((_file: File, dataUrl: string) => {
     if (mode === '3d') {
@@ -412,7 +414,7 @@ export default function StudioPage() {
       {mode === '3d' && (
         <>
           <ControlSection label="Sampling">
-            <AnimatedSlider label="Width" value={opts.width} min={10} max={160} step={1} onChange={v => updateOpt('width', v)} />
+            <AnimatedSlider label="Res." value={opts.width} min={10} max={160} step={1} onChange={v => updateOpt('width', v)} />
             <AnimatedSlider label="Density" value={opts.densityBias} min={0.2} max={3} step={0.05} onChange={v => updateOpt('densityBias', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Depth" value={depthRatio} min={0.1} max={1} step={0.05} onChange={setDepthRatio} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Focus" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
@@ -490,7 +492,7 @@ export default function StudioPage() {
       {mode === 'gif' && (
         <>
           <ControlSection label="Sampling">
-            <AnimatedSlider label="Width" value={opts.width} min={10} max={160} step={1} onChange={v => updateOpt('width', v)} />
+            <AnimatedSlider label="Res." value={opts.width} min={10} max={160} step={1} onChange={v => updateOpt('width', v)} />
             <AnimatedSlider label="Duration" value={opts.duration} min={1} max={10} step={1} onChange={v => updateOpt('duration', v)} format={v => `${v}s`} />
             <AnimatedSlider label="FPS" value={opts.fps} min={5} max={30} step={5} onChange={v => updateOpt('fps', v)} />
             <AnimatedSlider label="Focus" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
@@ -584,7 +586,7 @@ export default function StudioPage() {
       {mode === 'static' && (
         <>
           <ControlSection label="Sampling">
-            <AnimatedSlider label="Width" value={opts.width} min={10} max={220} step={1} onChange={v => updateOpt('width', v)} />
+            <AnimatedSlider label="Res." value={opts.width} min={10} max={220} step={1} onChange={v => updateOpt('width', v)} />
             <AnimatedSlider label="Pixelate" value={opts.pixelate} min={0} max={10} step={1} onChange={v => updateOpt('pixelate', v)} />
             <AnimatedSlider label="Focus" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
             <CharSetPicker value={opts.charset} onChange={v => updateOpt('charset', v)} />
