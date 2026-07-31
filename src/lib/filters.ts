@@ -34,7 +34,7 @@ export const filters: FilterDef[] = [
     id: 'dither',
     label: 'Dither',
     params: [
-      { key: 'strength', label: 'Strength', min: 0.2, max: 2, step: 0.1, default: 1 },
+      { key: 'strength', label: 'Str.', min: 0.2, max: 2, step: 0.1, default: 1 },
     ],
     apply(data, w, h, p) {
       const s = p.strength ?? 1
@@ -64,7 +64,7 @@ export const filters: FilterDef[] = [
     id: 'noise',
     label: 'Noise',
     params: [
-      { key: 'amount', label: 'Amount', min: 0.01, max: 0.5, step: 0.01, default: 0.08 },
+      { key: 'amount', label: 'Amt.', min: 0.01, max: 0.5, step: 0.01, default: 0.08 },
     ],
     apply(data, _w, _h, p) {
       const amount = p.amount ?? 0.08
@@ -80,7 +80,7 @@ export const filters: FilterDef[] = [
     id: 'vignette',
     label: 'Vignette',
     params: [
-      { key: 'amount', label: 'Darkness', min: 0.1, max: 1, step: 0.05, default: 0.4 },
+      { key: 'amount', label: 'Dark', min: 0.1, max: 1, step: 0.05, default: 0.4 },
       { key: 'radius', label: 'Radius', min: 0.2, max: 1, step: 0.05, default: 0.6 },
     ],
     apply(data, w, h, p) {
@@ -131,7 +131,7 @@ export const filters: FilterDef[] = [
     id: 'vhs',
     label: 'VHS',
     params: [
-      { key: 'shift', label: 'Chroma shift', min: 1, max: 10, step: 1, default: 3 },
+      { key: 'shift', label: 'Chroma', min: 1, max: 10, step: 1, default: 3 },
       { key: 'noiseAmount', label: 'Noise', min: 0.01, max: 0.3, step: 0.01, default: 0.05 },
     ],
     apply(data, w, h, p) {
@@ -161,7 +161,7 @@ export const filters: FilterDef[] = [
     id: 'crt',
     label: 'CRT',
     params: [
-      { key: 'scanline', label: 'Scanline', min: 0.1, max: 0.8, step: 0.05, default: 0.3 },
+      { key: 'scanline', label: 'Scan', min: 0.1, max: 0.8, step: 0.05, default: 0.3 },
     ],
     apply(data, w, h, p) {
       const s = p.scanline ?? 0.3
@@ -180,7 +180,7 @@ export const filters: FilterDef[] = [
     id: 'glitch',
     label: 'Glitch',
     params: [
-      { key: 'amount', label: 'Amount', min: 1, max: 20, step: 1, default: 5 },
+      { key: 'amount', label: 'Amt.', min: 1, max: 20, step: 1, default: 5 },
     ],
     apply(data, w, h, p) {
       const amt = Math.round(p.amount ?? 5)
@@ -227,7 +227,7 @@ export const filters: FilterDef[] = [
     id: 'thermal',
     label: 'Thermal',
     params: [
-      { key: 'contrast', label: 'Contrast', min: 0.5, max: 2, step: 0.1, default: 1 },
+      { key: 'contrast', label: 'Contr.', min: 0.5, max: 2, step: 0.1, default: 1 },
     ],
     apply(data, _w, _h, p) {
       const c = p.contrast ?? 1
@@ -250,7 +250,7 @@ export const filters: FilterDef[] = [
     id: 'emboss',
     label: 'Emboss',
     params: [
-      { key: 'strength', label: 'Strength', min: 0.5, max: 4, step: 0.5, default: 1.5 },
+      { key: 'strength', label: 'Str.', min: 0.5, max: 4, step: 0.5, default: 1.5 },
     ],
     apply(data, w, h, p) {
       const s = p.strength ?? 1.5
@@ -286,7 +286,7 @@ export const filters: FilterDef[] = [
     id: 'starGlow',
     label: 'Star Glow',
     params: [
-      { key: 'threshold', label: 'Threshold', min: 0.5, max: 1, step: 0.05, default: 0.8 },
+      { key: 'threshold', label: 'Thresh', min: 0.5, max: 1, step: 0.05, default: 0.8 },
       { key: 'length', label: 'Length', min: 5, max: 40, step: 5, default: 20 },
     ],
     apply(data, w, h, p) {
@@ -329,7 +329,7 @@ export const filters: FilterDef[] = [
     id: 'reededGlass',
     label: 'Reeded Glass',
     params: [
-      { key: 'amount', label: 'Distortion', min: 1, max: 10, step: 1, default: 4 },
+      { key: 'amount', label: 'Dist.', min: 1, max: 10, step: 1, default: 4 },
     ],
     apply(data, w, h, p) {
       const amt = Math.round(p.amount ?? 4)
@@ -369,9 +369,9 @@ export const filters: FilterDef[] = [
     id: 'cameraShake',
     label: 'Camera Shake',
     params: [
-      { key: 'blurriness', label: 'Blurriness', min: -10, max: 10, step: 1, default: -5 },
-      { key: 'threshold', label: 'Threshold', min: 0.1, max: 3, step: 0.1, default: 1 },
-      { key: 'ringing', label: 'Ringing', min: 0.05, max: 0.5, step: 0.05, default: 0.2 },
+      { key: 'blurriness', label: 'Blur', min: -10, max: 10, step: 1, default: -5 },
+      { key: 'threshold', label: 'Thresh', min: 0.1, max: 3, step: 0.1, default: 1 },
+      { key: 'ringing', label: 'Ring', min: 0.05, max: 0.5, step: 0.05, default: 0.2 },
     ],
     apply(data, w, h, p) {
       const len = Math.max(1, Math.abs(Math.round(p.blurriness ?? -5)))
@@ -423,16 +423,6 @@ export const presets: PresetDef[] = [
     ],
   },
   {
-    id: 'motion-blur',
-    label: 'Motion Blur',
-    filters: [
-      { id: 'monochrome', params: {} },
-      { id: 'cameraShake', params: { blurriness: -5, threshold: 1, ringing: 0.2 } },
-      { id: 'noise', params: { amount: 0.05 } },
-      { id: 'vignette', params: { amount: 0.5, radius: 0.5 } },
-    ],
-  },
-  {
     id: 'lens-flare',
     label: 'Lens Flare',
     filters: [
@@ -449,14 +439,6 @@ export const presets: PresetDef[] = [
     ],
   },
   {
-    id: 'vhs-tape',
-    label: 'VHS Tape',
-    filters: [
-      { id: 'vhs', params: { shift: 4, noiseAmount: 0.06 } },
-      { id: 'crt', params: { scanline: 0.2 } },
-    ],
-  },
-  {
     id: 'scanlines',
     label: 'Scanlines',
     filters: [
@@ -465,25 +447,10 @@ export const presets: PresetDef[] = [
     ],
   },
   {
-    id: 'rgb-glitch',
-    label: 'RGB Glitch',
-    filters: [
-      { id: 'glitch', params: { amount: 6 } },
-      { id: 'crt', params: { scanline: 0.15 } },
-    ],
-  },
-  {
     id: 'floyd-dither',
     label: 'Floyd-Steinberg',
     filters: [
       { id: 'dither', params: { strength: 1 } },
-    ],
-  },
-  {
-    id: 'heat-vision',
-    label: 'Heat Vision',
-    filters: [
-      { id: 'thermal', params: { contrast: 1 } },
     ],
   },
   {

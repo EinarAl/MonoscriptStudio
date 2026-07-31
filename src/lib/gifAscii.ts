@@ -115,6 +115,98 @@ function applyRadioWaves(
   return new ImageData(out, w, h)
 }
 
+// --- Warp frame cache -------------------------------------------------------
+// The radio-wave / rotation warp only depends on the source + warp params +
+// frame count, NOT on filters/tone/ASCII options. So when only the latter
+// change, we can skip the expensive per-frame warp math and reuse the cached
+// warped frames. Gated by a byte budget since warped frames are full-res.
+
+interface WarpCacheEntry {
+  source: ImageData
+  key: string
+  frames: ImageData[]
+}
+
+let warpCache: WarpCacheEntry | null = null
+const WARP_CACHE_BUDGET = 96 * 1024 * 1024 // 96MB
+
+function warpCacheKey(options: AsciiOptions, totalFrames: number): string {
+  if (options.gifAnim === 'radioWaves') {
+    return JSON.stringify([
+      'rw', totalFrames,
+      options.waveOriginX, options.waveOriginY,
+      options.waveRange, options.waveRadius,
+      options.waveSquareness, options.waveGap,
+      options.waveVisible, options.waveLineThickness, options.waveLineColor,
+      options.waveAmplitude, options.waveSpeed,
+      options.waveSharpness, options.waveWarmth, options.waveInward,
+    ])
+  }
+  return JSON.stringify(['other', options.gifAnim, totalFrames])
+}
+
+function computeWarpFrame(
+  sourceData: ImageData,
+  options: AsciiOptions,
+  f: number,
+  totalFrames: number,
+  srcCtx: CanvasRenderingContext2D,
+): ImageData {
+  if (options.gifAnim === 'radioWaves') {
+    return applyRadioWaves(
+      sourceData, f, totalFrames,
+      options.waveOriginX, options.waveOriginY,
+      options.waveRange, options.waveRadius,
+      options.waveSquareness, options.waveGap,
+      options.waveVisible, options.waveLineThickness,
+      options.waveLineColor,
+      options.waveAmplitude, options.waveSpeed,
+      options.waveSharpness, options.waveWarmth,
+      options.waveInward,
+    )
+  }
+
+  if (options.gifAnim === 'none') return sourceData
+
+  const { width: imgW, height: imgH } = sourceData
+  const angleRange = 6
+  const t = totalFrames > 1 ? f / (totalFrames - 1) : 0
+  const angle = (t - 0.5) * angleRange
+
+  srcCtx.clearRect(0, 0, imgW, imgH)
+  srcCtx.save()
+  srcCtx.translate(imgW / 2, imgH / 2)
+  srcCtx.rotate((angle * Math.PI) / 180)
+  srcCtx.drawImage(awaitImageData(sourceData), -imgW / 2, -imgH / 2, imgW, imgH)
+  srcCtx.restore()
+  return srcCtx.getImageData(0, 0, imgW, imgH)
+}
+
+function getWarpFrames(sourceData: ImageData, options: AsciiOptions, totalFrames: number): ImageData[] | null {
+  const { width: imgW, height: imgH } = sourceData
+
+  if (options.gifAnim === 'none') return null
+
+  const key = warpCacheKey(options, totalFrames)
+
+  if (warpCache && warpCache.source === sourceData && warpCache.key === key) {
+    return warpCache.frames
+  }
+
+  if (totalFrames * imgW * imgH * 4 > WARP_CACHE_BUDGET) return null
+
+  const srcCanvas = document.createElement('canvas')
+  srcCanvas.width = imgW
+  srcCanvas.height = imgH
+  const srcCtx = srcCanvas.getContext('2d')!
+  const frames: ImageData[] = []
+  for (let f = 0; f < totalFrames; f++) {
+    frames.push(computeWarpFrame(sourceData, options, f, totalFrames, srcCtx))
+  }
+  warpCache = { source: sourceData, key, frames }
+  return frames
+}
+
 export function generateAsciiGif(
   sourceData: ImageData,
   options: AsciiOptions,
@@ -150,41 +242,14 @@ export function generateAsciiGif(
       background: options.bgTransparent ? '#000000' : options.bgColor,
     })
 
-    const angleRange = options.gifAnim === 'rotation' ? 6 : 0
+    const cachedFrames = getWarpFrames(sourceData, options, totalFrames)
 
     for (let f = 0; f < totalFrames; f++) {
       onProgress?.(f + 1, totalFrames)
 
-      let frameData: ImageData
-
-      if (options.gifAnim === 'radioWaves') {
-        frameData = applyRadioWaves(
-          sourceData, f, totalFrames,
-          options.waveOriginX, options.waveOriginY,
-          options.waveRange, options.waveRadius,
-          options.waveSquareness, options.waveGap,
-          options.waveVisible, options.waveLineThickness,
-          options.waveLineColor,
-          options.waveAmplitude, options.waveSpeed,
-          options.waveSharpness, options.waveWarmth,
-          options.waveInward,
-        )
-      } else {
-        const t = totalFrames > 1 ? f / (totalFrames - 1) : 0
-        const angle = (t - 0.5) * angleRange
-
-        srcCtx.clearRect(0, 0, imgW, imgH)
-        if (angleRange > 0) {
-          srcCtx.save()
-          srcCtx.translate(imgW / 2, imgH / 2)
-          srcCtx.rotate((angle * Math.PI) / 180)
-          srcCtx.drawImage(awaitImageData(sourceData), -imgW / 2, -imgH / 2, imgW, imgH)
-          srcCtx.restore()
-        } else {
-          srcCtx.drawImage(awaitImageData(sourceData), 0, 0)
-        }
-        frameData = srcCtx.getImageData(0, 0, imgW, imgH)
-      }
+      const frameData = cachedFrames
+        ? cachedFrames[f]
+        : computeWarpFrame(sourceData, options, f, totalFrames, srcCtx)
 
       const grid = imageToAsciiGrid(frameData, options)
       const overlay = options.overlayImage && overlaySource ? overlaySource : undefined

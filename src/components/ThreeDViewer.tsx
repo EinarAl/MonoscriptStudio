@@ -47,12 +47,12 @@ export default function ThreeDViewer({ geometry, asciiOptions, animationMode, sp
     renderer.domElement.style.display = 'none'
     container.appendChild(renderer.domElement)
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.6)
+    const ambient = new THREE.AmbientLight(0xffffff, 0.15)
     scene.add(ambient)
-    const dir = new THREE.DirectionalLight(0xffffff, 1.0)
+    const dir = new THREE.DirectionalLight(0xffffff, 1.3)
     dir.position.set(5, 5, 5)
     scene.add(dir)
-    const dir2 = new THREE.DirectionalLight(0xffffff, 0.3)
+    const dir2 = new THREE.DirectionalLight(0xffffff, 0.35)
     dir2.position.set(-3, -2, -4)
     scene.add(dir2)
 
@@ -154,7 +154,7 @@ export default function ThreeDViewer({ geometry, asciiOptions, animationMode, sp
     }
 
     const handlePointerDown = (e: PointerEvent) => {
-      if (animModeRef.current === 'drag') {
+      if (animModeRef.current === 'drag' && e.button === 0) {
         isDragging = true
         dragLastX = e.clientX
         dragLastY = e.clientY

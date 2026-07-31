@@ -9,6 +9,7 @@
 }
 
 :root {
+  color-scheme: dark;
   /* Colors — grainrad palette */
   --color-void: #0a0a0a;
   --color-surface-base: #0f0f0f;
@@ -98,6 +99,32 @@ button {
 input, select {
   font-family: inherit;
   font-size: inherit;
+}
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  width: 13px;
+  height: 13px;
+  border: 1px solid var(--color-border-visible);
+  border-radius: 3px;
+  background: var(--color-surface-base);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+input[type="checkbox"]:hover {
+  border-color: var(--color-text-secondary);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.2);
+}
+input[type="checkbox"]:checked {
+  background: var(--color-surface-base) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 11'%3E%3Cpath d='M2 5.5L4.5 8L9 3' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 11px 11px no-repeat;
+  border-color: var(--color-text-secondary);
+}
+input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--color-text-secondary);
+  outline-offset: 2px;
 }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

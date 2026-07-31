@@ -6,11 +6,12 @@ interface Props {
   min: number
   max: number
   step?: number
+  labelWidth?: number
   onChange: (v: number) => void
   format?: (v: number) => string
 }
 
-export default function AnimatedSlider({ label, value: propValue, min, max, step = 1, onChange, format }: Props) {
+export default function AnimatedSlider({ label, value: propValue, min, max, step = 1, labelWidth = 48, onChange, format }: Props) {
   const [local, setLocal] = useState(propValue)
   const committed = useRef(propValue)
   const isDragging = useRef(false)
@@ -36,7 +37,7 @@ export default function AnimatedSlider({ label, value: propValue, min, max, step
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <label style={{
-        color: 'var(--color-text-secondary)', fontSize: 11, minWidth: 48,
+        color: 'var(--color-text-secondary)', fontSize: 11, minWidth: labelWidth,
         textAlign: 'right', whiteSpace: 'nowrap', fontWeight: 500,
       }}>{label}</label>
       <div style={{ flex: 1, position: 'relative', height: 20, display: 'flex', alignItems: 'center' }}>

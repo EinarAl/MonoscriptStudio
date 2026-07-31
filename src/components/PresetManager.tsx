@@ -4,7 +4,7 @@ import { presets } from '../lib/filters'
 import type { PresetDef } from '../lib/filters'
 import AnimatedRow, { useRowHover } from './AnimatedRow'
 import GlowButton from './GlowButton'
-import RangeSlider from './RangeSlider'
+import AnimatedSlider from './AnimatedSlider'
 
 interface Props {
   value: string[]
@@ -108,7 +108,7 @@ export default function PresetManager({ value, strength, onChange, onStrengthCha
                 transition={{ duration: 0.15 }}
                 style={{ padding: '2px 16px 6px 31px', borderBottom: '1px solid var(--color-border-subtle)', overflow: 'hidden' }}
               >
-                <RangeSlider label="Intensity" min={0} max={1} step={0.05}
+                <AnimatedSlider label="Int." labelWidth={40} min={0} max={1} step={0.05}
                   value={strength[p.id] ?? 1}
                   onChange={v => onStrengthChange(p.id, v)}
                 />
@@ -141,7 +141,7 @@ export default function PresetManager({ value, strength, onChange, onStrengthCha
                 transition={{ duration: 0.15 }}
                 style={{ padding: '2px 16px 6px 31px', borderBottom: '1px solid var(--color-border-subtle)', overflow: 'hidden' }}
               >
-                <RangeSlider label="Intensity" min={0} max={1} step={0.05}
+                <AnimatedSlider label="Int." labelWidth={40} min={0} max={1} step={0.05}
                   value={strength[p.id] ?? 1}
                   onChange={v => onStrengthChange(p.id, v)}
                 />

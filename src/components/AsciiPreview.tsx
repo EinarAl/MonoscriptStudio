@@ -48,7 +48,7 @@ export default function AsciiPreview({ ascii, grid, fontSize = 8, lineHeight = 1
     }}>
       <pre style={{
         margin: 0, fontSize: fontSize * outputScale, lineHeight,
-        fontFamily: "'Monocraft', 'Courier New', 'Consolas', monospace",
+        fontFamily: "'Courier New', monospace",
         color: 'var(--color-text-primary)',
         letterSpacing: `${ls}px`, wordBreak: 'keep-all',
       }}>
