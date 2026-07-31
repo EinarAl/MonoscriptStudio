@@ -87,7 +87,7 @@ export default function StudioShell({ mode, onModeChange, leftSidebar, rightSide
         <button onClick={toggleLeft}
           style={{
             position: 'absolute', left: leftOpen ? LEFT_DEFAULT - 1 : 0, top: '50%',
-            translate: leftOpen ? '-100% -50%' : '0 -50%',
+            translate: '0 -50%',
             zIndex: 20, padding: 0, border: 'none', background: 'none',
             color: 'var(--color-text-tertiary)', cursor: 'pointer',
             fontSize: 18, lineHeight: 1, opacity: 0.6,
@@ -128,7 +128,7 @@ export default function StudioShell({ mode, onModeChange, leftSidebar, rightSide
         <button onClick={toggleRight}
           style={{
             position: 'absolute', right: rightOpen ? RIGHT_DEFAULT - 1 : 0, top: '50%',
-            translate: rightOpen ? '100% -50%' : '0 -50%',
+            translate: '0 -50%',
             zIndex: 20, padding: 0, border: 'none', background: 'none',
             color: 'var(--color-text-tertiary)', cursor: 'pointer',
             fontSize: 18, lineHeight: 1, opacity: 0.6,
