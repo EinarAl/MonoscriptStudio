@@ -14,6 +14,7 @@ interface Props {
 
 const LEFT_DEFAULT = 220
 const RIGHT_DEFAULT = 280
+const ARROW_GAP = 6
 
 const MAXIMIZE_PATH = 'M0.5 9.7046 L0.5 21.7046 M0.5 21.7046 L12.5 21.7046 M21.5 12.7046 L21.5 0.7046 M21.4348 0.5 L9 0.5'
 const MINIMIZE_PATH = 'M0.5 0.5 L0.5 21.5 M0.5 21.5 L21.5 21.5 M21.5 21.5 L21.5 0.5 M21.5 0.5 L0.5 0.5'
@@ -86,7 +87,7 @@ export default function StudioShell({ mode, onModeChange, leftSidebar, rightSide
 
         <button onClick={toggleLeft}
           style={{
-            position: 'absolute', left: leftOpen ? LEFT_DEFAULT - 1 : 0, top: '50%',
+            position: 'absolute', left: leftOpen ? LEFT_DEFAULT + ARROW_GAP : 0, top: '50%',
             translate: '0 -50%',
             zIndex: 20, padding: 0, border: 'none', background: 'none',
             color: 'var(--color-text-tertiary)', cursor: 'pointer',
@@ -127,7 +128,7 @@ export default function StudioShell({ mode, onModeChange, leftSidebar, rightSide
 
         <button onClick={toggleRight}
           style={{
-            position: 'absolute', right: rightOpen ? RIGHT_DEFAULT - 1 : 0, top: '50%',
+            position: 'absolute', right: rightOpen ? RIGHT_DEFAULT + ARROW_GAP : 0, top: '50%',
             translate: '0 -50%',
             zIndex: 20, padding: 0, border: 'none', background: 'none',
             color: 'var(--color-text-tertiary)', cursor: 'pointer',
