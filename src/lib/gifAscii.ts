@@ -1,6 +1,6 @@
 // @ts-ignore
 import GIF from 'gif.js'
-import type { AsciiOptions } from '../types'
+import type { AsciiOptions, AsciiGrid } from '../types'
 import { imageToAsciiGrid, renderGridToCanvas } from './imageToAscii'
 
 function applyRadioWaves(
@@ -204,4 +204,43 @@ function awaitImageData(data: ImageData): HTMLCanvasElement {
   const ctx = c.getContext('2d')!
   ctx.putImageData(data, 0, 0)
   return c
+}
+
+export function generateGifFromGrids(
+  grids: AsciiGrid[],
+  fps: number,
+  onProgress?: (frame: number, total: number) => void,
+): Promise<Blob> {
+  return new Promise((resolve) => {
+    const total = grids.length
+    if (total === 0) { resolve(new Blob()); return }
+
+    const cellW = 7
+    const cellH = 12
+    const first = grids[0]
+    const outW = first.cols * cellW
+    const outH = first.rows * cellH
+    const outCanvas = document.createElement('canvas')
+    outCanvas.width = outW
+    outCanvas.height = outH
+    const outCtx = outCanvas.getContext('2d')!
+
+    const gif = new GIF({
+      workers: 1,
+      quality: 20,
+      width: outW,
+      height: outH,
+      background: '#000000',
+    })
+
+    const delayMs = Math.round(1000 / fps)
+    for (let i = 0; i < total; i++) {
+      onProgress?.(i + 1, total)
+      renderGridToCanvas(grids[i], '#000000', true, cellW, cellH, outCanvas, outCtx)
+      gif.addFrame(outCanvas, { copy: true, delay: delayMs })
+    }
+
+    gif.on('finished', (blob: Blob) => resolve(blob))
+    gif.render()
+  })
 }
