@@ -1,4 +1,4 @@
-import { type ReactNode, useState, useCallback, useRef } from 'react'
+import { type ReactNode, useState, useCallback, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import ModeToggle from './ModeToggle'
 
@@ -17,6 +17,9 @@ const MAX_SIDEBAR = 500
 const LEFT_DEFAULT = 220
 const RIGHT_DEFAULT = 280
 
+const MAXIMIZE_PATH = 'M0.5 9.7046 L0.5 21.7046 M0.5 21.7046 L12.5 21.7046 M21.5 12.7046 L21.5 0.7046 M21.4348 0.5 L9 0.5'
+const MINIMIZE_PATH = 'M0.5 0.5 L0.5 21.5 M0.5 21.5 L21.5 21.5 M21.5 21.5 L21.5 0.5 M21.5 0.5 L0.5 0.5'
+
 export default function StudioShell({ mode, onModeChange, leftSidebar, rightSidebar, children }: Props) {
   const [leftOpen, setLeftOpen] = useState(() => window.innerWidth > 768)
   const [rightOpen, setRightOpen] = useState(() => window.innerWidth > 768)
@@ -24,6 +27,25 @@ export default function StudioShell({ mode, onModeChange, leftSidebar, rightSide
   const [rightW, setRightW] = useState(RIGHT_DEFAULT)
   const prevLeft = useRef(LEFT_DEFAULT)
   const prevRight = useRef(RIGHT_DEFAULT)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', onChange)
+    return () => document.removeEventListener('fullscreenchange', onChange)
+  }, [])
+
+  const toggleFullscreen = useCallback(async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen()
+      } else {
+        await document.documentElement.requestFullscreen()
+      }
+    } catch {
+      /* fullscreen request rejected */
+    }
+  }, [])
 
   const toggleLeft = useCallback(() => {
     if (leftOpen) {
@@ -94,7 +116,9 @@ export default function StudioShell({ mode, onModeChange, leftSidebar, rightSide
             border: '1px solid var(--color-border-subtle)', borderRadius: 4,
           }}>beta</span>
         </div>
-        <ModeToggle value={mode} onChange={onModeChange} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <ModeToggle value={mode} onChange={onModeChange} />
+        </div>
       </div>
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
@@ -139,6 +163,28 @@ export default function StudioShell({ mode, onModeChange, leftSidebar, rightSide
           overflow: 'hidden', position: 'relative', background: '#000000',
         }}>
           {children}
+          <button
+            onClick={toggleFullscreen}
+            title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            style={{
+              position: 'absolute', top: 10, right: 12, zIndex: 30,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 30, height: 30, padding: 0,
+              background: 'transparent', border: 'none',
+              color: 'var(--color-text-tertiary)',
+              cursor: 'pointer', transition: 'color 0.15s ease, opacity 0.15s ease',
+              opacity: isFullscreen ? 0.9 : 0.5,
+            }}
+          >
+            <svg width={16} height={16} viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" aria-hidden="true">
+              <motion.path
+                initial={false}
+                animate={{ d: isFullscreen ? MINIMIZE_PATH : MAXIMIZE_PATH }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+              />
+            </svg>
+          </button>
         </main>
 
         <button onClick={toggleRight}

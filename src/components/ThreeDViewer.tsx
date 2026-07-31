@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { makeAsciiFilter } from '../lib/asciiFilter'
 import { gridToPlainText, renderGridToCanvas } from '../lib/imageToAscii'
-import type { AsciiOptions, AnimationMode } from '../types'
+import type { AsciiOptions, AnimationMode, AsciiGrid } from '../types'
 
 interface Props {
   geometry: THREE.BufferGeometry
@@ -11,20 +11,23 @@ interface Props {
   spinSpeed: number
   onFrame?: (ascii: string) => void
   onGrid?: (cols: number, rows: number) => void
+  onGridCapture?: (grid: AsciiGrid) => void
 }
 
-export default function ThreeDViewer({ geometry, asciiOptions, animationMode, spinSpeed, onFrame, onGrid }: Props) {
+export default function ThreeDViewer({ geometry, asciiOptions, animationMode, spinSpeed, onFrame, onGrid, onGridCapture }: Props) {
   const containerRef = useRef<HTMLDivElement>(null!)
   const canvasRef = useRef<HTMLCanvasElement>(null!)
   const optsRef = useRef(asciiOptions)
   const onFrameRef = useRef(onFrame)
   const onGridRef = useRef(onGrid)
+  const onGridCaptureRef = useRef(onGridCapture)
   const animModeRef = useRef(animationMode)
   const spinSpeedRef = useRef(spinSpeed)
   const prevColorModeRef = useRef<string | null>(null)
   optsRef.current = asciiOptions
   onFrameRef.current = onFrame
   onGridRef.current = onGrid
+  onGridCaptureRef.current = onGridCapture
   animModeRef.current = animationMode
   spinSpeedRef.current = spinSpeed
 
@@ -122,6 +125,7 @@ export default function ThreeDViewer({ geometry, asciiOptions, animationMode, sp
         renderGridToCanvas(grid, opts.bgColor, opts.bgTransparent, 7 * opts.outputScale, 12 * opts.outputScale, canvas, ctx)
         onFrameRef.current?.(gridToPlainText(grid))
         onGridRef.current?.(grid.cols, grid.rows)
+        onGridCaptureRef.current?.(grid)
       }
 
       animId = requestAnimationFrame(animate)

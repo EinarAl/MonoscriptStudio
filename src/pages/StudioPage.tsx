@@ -13,7 +13,7 @@ import FileUpload from '../components/FileUpload'
 import PixelEditor from '../components/PixelEditor'
 import GifAsciiPage from './GifAsciiPage'
 import StaticAsciiPage from './StaticAsciiPage'
-import { generateAsciiGif } from '../lib/gifAscii'
+import { generateAsciiGif, generateGifFromGrids } from '../lib/gifAscii'
 import { imageToAsciiGrid, gridToPlainText, gridToHtml, gridToSvg, gridToJson, renderGridToCanvas, removeBackground } from '../lib/imageToAscii'
 import { extrudeSvg, extractPointCloud } from '../lib/svgTo3D'
 import { pixelGridToGeometry } from '../lib/pixelTo3D'
@@ -37,6 +37,12 @@ export default function StudioPage() {
   const [spinSpeed, setSpinSpeed] = useState(1)
   const [depthRatio, setDepthRatio] = useState(0.35)
   const [terminalSampleCount, setTerminalSampleCount] = useState(5000)
+  const latestGridRef = useRef<AsciiGrid | null>(null)
+  const [recordSeconds, setRecordSeconds] = useState(10)
+  const [recording, setRecording] = useState(false)
+  const [renderingGif, setRenderingGif] = useState(false)
+  const recordFramesRef = useRef<AsciiGrid[]>([])
+  const recordTimerRef = useRef(0)
   const [fileLoaded, setFileLoaded] = useState(false)
   const [imageData, setImageData] = useState<ImageData | null>(null)
   const [sourceImageData, setSourceImageData] = useState<ImageData | null>(null)
@@ -298,6 +304,69 @@ export default function StudioPage() {
     URL.revokeObjectURL(url)
   }, [geometry, terminalSampleCount, opts.width])
 
+  /* 3D screenshot export (transparent background, ASCII render only) */
+  const handleExportPng = useCallback(() => {
+    const grid = latestGridRef.current
+    if (!grid) return
+    const cellW = 7 * opts.outputScale
+    const cellH = 12 * opts.outputScale
+    const { canvas } = renderGridToCanvas(grid, '#000000', true, cellW, cellH)
+    canvas.toBlob(b => {
+      if (!b) return
+      const url = URL.createObjectURL(b)
+      const a = document.createElement('a')
+      a.href = url; a.download = 'ascii-3d.png'; a.click()
+      URL.revokeObjectURL(url)
+    })
+  }, [opts.outputScale])
+
+  const handleExportSvg = useCallback(() => {
+    const grid = latestGridRef.current
+    if (!grid) return
+    const svg = gridToSvg(grid, '#000000', true, opts.outputScale)
+    const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }))
+    const a = document.createElement('a')
+    a.href = url; a.download = 'ascii-3d.svg'; a.click()
+    URL.revokeObjectURL(url)
+  }, [opts.outputScale])
+
+  /* 3D screenrecord GIF */
+  const handleRecordFinish = useCallback(() => {
+    const frames = recordFramesRef.current
+    if (frames.length === 0) return
+    setRenderingGif(true)
+    generateGifFromGrids(frames, 30).then(blob => {
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = 'ascii-3d.gif'; a.click()
+      URL.revokeObjectURL(url)
+      setRenderingGif(false)
+    })
+  }, [])
+
+  const handleRecordStart = useCallback(() => {
+    recordFramesRef.current = []
+    setRecording(true)
+    recordTimerRef.current = window.setTimeout(() => {
+      setRecording(false)
+      handleRecordFinish()
+    }, recordSeconds * 1000)
+  }, [recordSeconds, handleRecordFinish])
+
+  const handleRecordStop = useCallback(() => {
+    window.clearTimeout(recordTimerRef.current)
+    setRecording(false)
+    handleRecordFinish()
+  }, [handleRecordFinish])
+
+  const handleGridCapture = useCallback((grid: AsciiGrid) => {
+    latestGridRef.current = grid
+    if (recordingRef.current) recordFramesRef.current.push(grid)
+  }, [])
+
+  const recordingRef = useRef(false)
+  recordingRef.current = recording
+
   /* GIF download */
   const gifDownloadUrl = gifDone && gifUrl ? gifUrl : previewUrl
   const gifDownloadName = gifDone && gifUrl ? 'ascii.gif' : 'ascii-preview.png'
@@ -330,9 +399,13 @@ export default function StudioPage() {
 
   const rightSidebar = (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {gridInfo && (
-        <div style={{ padding: '8px 16px', fontSize: 10, color: 'var(--color-text-tertiary)', borderBottom: '1px solid var(--color-border-subtle)' }}>
-          {gridInfo.cols}W &times; {gridInfo.rows}H
+      {(gridInfo || previewZoom !== 1 || previewPan.x !== 0 || previewPan.y !== 0) && (
+        <div style={{ padding: '8px 16px', fontSize: 10, color: 'var(--color-text-tertiary)', borderBottom: '1px solid var(--color-border-subtle)', display: 'flex', alignItems: 'center', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+          {gridInfo && <span style={{ flex: 1, textAlign: 'left' }}>{gridInfo.cols}W &times; {gridInfo.rows}H</span>}
+          {gridInfo && <span style={{ opacity: 0.35 }}>&middot;</span>}
+          <span style={{ flex: 1, textAlign: 'center', opacity: 0.8 }}>{previewZoom.toFixed(2)}x</span>
+          <span style={{ opacity: 0.35 }}>&middot;</span>
+          <span style={{ flex: 1, textAlign: 'right', opacity: 0.8 }}>X {previewPan.x >= 0 ? '+' : ''}{Math.round(previewPan.x)} Y {previewPan.y >= 0 ? '+' : ''}{Math.round(previewPan.y)}</span>
         </div>
       )}
 
@@ -390,6 +463,26 @@ export default function StudioPage() {
                 Download Terminal Script
               </GlowButton>
               <AnimatedSlider label="Samples" value={terminalSampleCount} min={500} max={30000} step={500} onChange={setTerminalSampleCount} format={v => v.toString()} />
+              <span style={{ color: 'var(--color-text-tertiary)', fontSize: 9, padding: '4px 0 0', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Screenshot</span>
+              <div style={{ display: 'flex', gap: 4 }}>
+                <GlowButton onClick={handleExportPng}
+                  radius={0} textColor="var(--color-text-secondary)" lineColor="#ffffff" intensity={1.5}
+                  style={{ flex: 1, padding: '5px 0', fontSize: 11, fontWeight: 500, border: '1px solid var(--color-accent)', background: 'transparent', boxShadow: 'none' }}>
+                  PNG
+                </GlowButton>
+                <GlowButton onClick={handleExportSvg}
+                  radius={0} textColor="var(--color-text-secondary)" lineColor="#ffffff" intensity={1.5}
+                  style={{ flex: 1, padding: '5px 0', fontSize: 11, fontWeight: 500, border: '1px solid var(--color-accent)', background: 'transparent', boxShadow: 'none' }}>
+                  SVG
+                </GlowButton>
+              </div>
+              <span style={{ color: 'var(--color-text-tertiary)', fontSize: 9, padding: '4px 0 0', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Screenrecord</span>
+              <AnimatedSlider label="Length" value={recordSeconds} min={5} max={15} step={5} onChange={setRecordSeconds} format={v => `${v}s`} />
+              <GlowButton onClick={recording ? handleRecordStop : handleRecordStart} disabled={renderingGif}
+                radius={0} textColor="var(--color-text-secondary)" lineColor="#ffffff" intensity={1.5}
+                style={{ width: '100%', padding: '6px 0', fontSize: 11, fontWeight: 500, border: '1px solid var(--color-accent)', background: 'transparent', boxShadow: 'none' }}>
+                {renderingGif ? 'Rendering...' : recording ? `Recording... (stop)` : `Record GIF`}
+              </GlowButton>
             </div>
           </ControlSection>
         </>
@@ -586,6 +679,7 @@ export default function StudioPage() {
                   animationMode={animationMode}
                   spinSpeed={spinSpeed}
                   onGrid={handle3dGrid}
+                  onGridCapture={handleGridCapture}
                 />
               )}
               {mode === 'gif' && (
