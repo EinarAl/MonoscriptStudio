@@ -58,7 +58,7 @@ export default function StudioShell({ mode, onModeChange, leftSidebar, rightSide
         flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.02em' }}>AsciiStudio</span>
+          <span style={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.02em' }}>MonoscriptStudio</span>
           <span style={{
             fontSize: 10, color: 'var(--color-text-tertiary)', padding: '2px 6px',
             border: '1px solid var(--color-border-subtle)', borderRadius: 4,

@@ -290,10 +290,23 @@ export const filters: FilterDef[] = [
       { key: 'length', label: 'Length', min: 5, max: 40, step: 5, default: 20 },
     ],
     apply(data, w, h, p) {
-      const thr = (p.threshold ?? 0.8) * 255
       const len = Math.round(p.length ?? 20)
+
+      // Adaptive threshold: scale against the image's brightest pixel so dark
+      // 3D renders and bright photos both produce streaks.
+      let maxLum = 0
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const i = (y * w + x) * 4
+          const l = luminance(data[i], data[i + 1], data[i + 2])
+          if (l > maxLum) maxLum = l
+        }
+      }
+      if (maxLum === 0) return
+
+      const thr = Math.max((p.threshold ?? 0.8) * maxLum, 32)
+
       const copy = new Uint8ClampedArray(data)
-      // Find bright pixels
       const bright: Array<[number, number, number, number, number]> = [] // x, y, r, g, b
       for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
@@ -302,23 +315,29 @@ export const filters: FilterDef[] = [
           if (l > thr) bright.push([x, y, copy[i], copy[i + 1], copy[i + 2]])
         }
       }
+
+      // Cap streak work: even stride sampling keeps distribution even for huge images
+      const MAX_BRIGHT = 1500
+      const stride = bright.length > MAX_BRIGHT ? Math.ceil(bright.length / MAX_BRIGHT) : 1
+
       // Draw cross streaks
-      for (const [bx, by, r, g, b] of bright) {
-        for (let s = -len; s <= len; s++) {
-          if (s === 0) continue
-          const fade = 1 - Math.abs(s) / len
+      for (let b = 0; b < bright.length; b += stride) {
+        const [bx, by, r, g, bl] = bright[b]
+        for (let s = 1; s <= len; s++) {
+          const fade = 1 - s / len
+          const d = Math.round(s * 0.3)
           const positions = [
-            [bx + s, by],
-            [bx, by + s],
-            [bx + s, by + s * 0.3],
-            [bx + s * 0.3, by + s],
+            [bx + s, by], [bx - s, by],
+            [bx, by + s], [bx, by - s],
+            [bx + s, by + d], [bx - s, by - d],
+            [bx + d, by + s], [bx - d, by - s],
           ]
           for (const [px, py] of positions) {
             if (px >= 0 && px < w && py >= 0 && py < h) {
               const i = (py * w + px) * 4
               data[i] = clamp(data[i] + r * fade * 0.5)
               data[i + 1] = clamp(data[i + 1] + g * fade * 0.5)
-              data[i + 2] = clamp(data[i + 2] + b * fade * 0.5)
+              data[i + 2] = clamp(data[i + 2] + bl * fade * 0.5)
             }
           }
         }
