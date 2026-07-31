@@ -314,9 +314,13 @@ export default function StudioPage() {
 
   const rightSidebar = (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {gridInfo && (
-        <div style={{ padding: '8px 16px', fontSize: 10, color: 'var(--color-text-tertiary)', borderBottom: '1px solid var(--color-border-subtle)' }}>
-          {gridInfo.cols}W &times; {gridInfo.rows}H
+      {(gridInfo || previewZoom !== 1 || previewPan.x !== 0 || previewPan.y !== 0) && (
+        <div style={{ padding: '8px 16px', fontSize: 10, color: 'var(--color-text-tertiary)', borderBottom: '1px solid var(--color-border-subtle)', display: 'flex', alignItems: 'center', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+          {gridInfo && <span style={{ flex: 1, textAlign: 'left' }}>{gridInfo.cols}W &times; {gridInfo.rows}H</span>}
+          {gridInfo && <span style={{ opacity: 0.35 }}>&middot;</span>}
+          <span style={{ flex: 1, textAlign: 'center', opacity: 0.8 }}>{previewZoom.toFixed(2)}x</span>
+          <span style={{ opacity: 0.35 }}>&middot;</span>
+          <span style={{ flex: 1, textAlign: 'right', opacity: 0.8 }}>X {previewPan.x >= 0 ? '+' : ''}{Math.round(previewPan.x)} Y {previewPan.y >= 0 ? '+' : ''}{Math.round(previewPan.y)}</span>
         </div>
       )}
 
