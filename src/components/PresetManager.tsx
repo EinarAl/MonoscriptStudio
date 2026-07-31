@@ -165,13 +165,11 @@ export default function PresetManager({ value, strength, onChange, onStrengthCha
         ) : (
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             <GlowButton onClick={() => setSaving(true)}
-              radius={0} textColor="var(--color-text-secondary)" style={{ padding: '4px 10px', fontSize: 11 }}>Save Current</GlowButton>
-            <span style={{ display: 'inline-flex', gap: 4 }}>
-              <GlowButton onClick={handleExport}
-                radius={0} textColor="var(--color-text-secondary)" style={{ padding: '4px 10px', fontSize: 11 }}>Export</GlowButton>
-              <GlowButton onClick={() => importRef.current?.click()}
-                radius={0} textColor="var(--color-text-secondary)" style={{ padding: '4px 10px', fontSize: 11 }}>Import</GlowButton>
-            </span>
+              radius={0} textColor="var(--color-text-secondary)" lineColor="#ffffff" intensity={1.5} style={{ width: '100%', padding: '4px 10px', fontSize: 11 }}>Save Current</GlowButton>
+            <GlowButton onClick={handleExport}
+              radius={0} textColor="var(--color-text-secondary)" lineColor="#ffffff" intensity={1.5} style={{ flex: 1, padding: '4px 10px', fontSize: 11 }}>Export</GlowButton>
+            <GlowButton onClick={() => importRef.current?.click()}
+              radius={0} textColor="var(--color-text-secondary)" lineColor="#ffffff" intensity={1.5} style={{ flex: 1, padding: '4px 10px', fontSize: 11 }}>Import</GlowButton>
             <input ref={importRef} type="file" accept=".json" onChange={handleImport} hidden />
           </div>
         )}
