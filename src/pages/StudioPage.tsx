@@ -400,12 +400,12 @@ export default function StudioPage() {
   const rightSidebar = (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {(gridInfo || previewZoom !== 1 || previewPan.x !== 0 || previewPan.y !== 0) && (
-        <div style={{ padding: '8px 16px', fontSize: 10, color: 'var(--color-text-tertiary)', borderBottom: '1px solid var(--color-border-subtle)', display: 'flex', alignItems: 'center', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+        <div style={{ padding: '8px 16px', fontSize: 10, color: 'var(--color-text-secondary)', borderBottom: '1px solid var(--color-border-subtle)', display: 'flex', alignItems: 'center', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
           {gridInfo && <span style={{ flex: 1, textAlign: 'left' }}>{gridInfo.cols}W &times; {gridInfo.rows}H</span>}
-          {gridInfo && <span style={{ opacity: 0.35 }}>&middot;</span>}
-          <span style={{ flex: 1, textAlign: 'center', opacity: 0.8 }}>{previewZoom.toFixed(2)}x</span>
-          <span style={{ opacity: 0.35 }}>&middot;</span>
-          <span style={{ flex: 1, textAlign: 'right', opacity: 0.8 }}>X {previewPan.x >= 0 ? '+' : ''}{Math.round(previewPan.x)} Y {previewPan.y >= 0 ? '+' : ''}{Math.round(previewPan.y)}</span>
+          {gridInfo && <span style={{ color: 'var(--color-text-tertiary)' }}>&middot;</span>}
+          <span style={{ flex: 1, textAlign: 'center' }}>{previewZoom.toFixed(2)}x</span>
+          <span style={{ color: 'var(--color-text-tertiary)' }}>&middot;</span>
+          <span style={{ flex: 1, textAlign: 'right' }}>X {previewPan.x >= 0 ? '+' : ''}{Math.round(previewPan.x)} Y {previewPan.y >= 0 ? '+' : ''}{Math.round(previewPan.y)}</span>
         </div>
       )}
 
@@ -413,7 +413,6 @@ export default function StudioPage() {
         <>
           <ControlSection label="Sampling">
             <AnimatedSlider label="Width" value={opts.width} min={10} max={160} step={1} onChange={v => updateOpt('width', v)} />
-            <AnimatedSlider label="H Scale" value={opts.heightScale} min={0.2} max={2} step={0.05} onChange={v => updateOpt('heightScale', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Density" value={opts.densityBias} min={0.2} max={3} step={0.05} onChange={v => updateOpt('densityBias', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Depth" value={depthRatio} min={0.1} max={1} step={0.05} onChange={setDepthRatio} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Focus" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
@@ -492,7 +491,6 @@ export default function StudioPage() {
         <>
           <ControlSection label="Sampling">
             <AnimatedSlider label="Width" value={opts.width} min={10} max={160} step={1} onChange={v => updateOpt('width', v)} />
-            <AnimatedSlider label="H Scale" value={opts.heightScale} min={0.2} max={2} step={0.05} onChange={v => updateOpt('heightScale', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Duration" value={opts.duration} min={1} max={10} step={1} onChange={v => updateOpt('duration', v)} format={v => `${v}s`} />
             <AnimatedSlider label="FPS" value={opts.fps} min={5} max={30} step={5} onChange={v => updateOpt('fps', v)} />
             <AnimatedSlider label="Focus" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
@@ -587,7 +585,6 @@ export default function StudioPage() {
         <>
           <ControlSection label="Sampling">
             <AnimatedSlider label="Width" value={opts.width} min={10} max={220} step={1} onChange={v => updateOpt('width', v)} />
-            <AnimatedSlider label="H Scale" value={opts.heightScale} min={0.2} max={2} step={0.05} onChange={v => updateOpt('heightScale', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Pixelate" value={opts.pixelate} min={0} max={10} step={1} onChange={v => updateOpt('pixelate', v)} />
             <AnimatedSlider label="Focus" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
             <CharSetPicker value={opts.charset} onChange={v => updateOpt('charset', v)} />
