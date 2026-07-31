@@ -17,6 +17,7 @@ import { generateAsciiGif, generateGifFromGrids } from '../lib/gifAscii'
 import { imageToAsciiGrid, gridToPlainText, gridToHtml, gridToSvg, gridToJson, renderGridToCanvas, removeBackground } from '../lib/imageToAscii'
 import { extrudeSvg, extractPointCloud } from '../lib/svgTo3D'
 import { pixelGridToGeometry } from '../lib/pixelTo3D'
+import { getFileExtension, is3dExtension, loadModelGeometry } from '../lib/modelTo3D'
 import { generateTerminalScript } from '../lib/terminalExporter'
 import { DEFAULT_ASCII_OPTIONS } from '../types'
 import type { AsciiOptions, AsciiGrid, ColorMode } from '../types'
@@ -43,11 +44,13 @@ export default function StudioPage() {
   const [renderingGif, setRenderingGif] = useState(false)
   const recordFramesRef = useRef<AsciiGrid[]>([])
   const recordTimerRef = useRef(0)
-  const [fileLoaded, setFileLoaded] = useState(false)
+  const [uploadedType, setUploadedType] = useState<'none' | 'image' | 'svg' | 'model'>('none')
+  const [uploadError, setUploadError] = useState('')
   const [imageData, setImageData] = useState<ImageData | null>(null)
   const [sourceImageData, setSourceImageData] = useState<ImageData | null>(null)
   const [gridInfo, setGridInfo] = useState<{ cols: number; rows: number } | null>(null)
   const svgRef = useRef('')
+  const modelGeometryRef = useRef<THREE.BufferGeometry | null>(null)
   const [previewZoom, setPreviewZoom] = useState(1)
   const [previewPan, setPreviewPan] = useState({ x: 0, y: 0 })
   const isPanning = useRef(false)
@@ -108,12 +111,13 @@ export default function StudioPage() {
   const updateOpt = <K extends keyof AsciiOptions>(key: K, val: AsciiOptions[K]) =>
     setOpts(prev => ({ ...prev, [key]: val }))
 
+  const fileLoaded = mode === '3d'
+    ? uploadedType === 'svg' || uploadedType === 'model'
+    : uploadedType === 'image' || uploadedType === 'svg'
+
   const loadGeometryFromSvg = useCallback((svg: string, depth: number) => {
     const geo = extrudeSvg(svg, 4, depth)
-    if (geo) {
-      setGeometry(geo)
-      setFileLoaded(true)
-    }
+    if (geo) setGeometry(geo)
   }, [])
 
   const handleTogglePixelArt = useCallback(() => {
@@ -140,6 +144,8 @@ export default function StudioPage() {
       } else {
         if (svgRef.current) {
           loadGeometryFromSvg(svgRef.current, depthRatio)
+        } else if (modelGeometryRef.current) {
+          setGeometry(modelGeometryRef.current)
         } else {
           setGeometry(makeDefaultGeometry())
         }
@@ -147,14 +153,7 @@ export default function StudioPage() {
     }, 150)
   }, [depthRatio, loadGeometryFromSvg])
 
-  const handleFile = useCallback((_file: File, dataUrl: string) => {
-    if (mode === '3d') {
-      fetch(dataUrl).then(r => r.text()).then(svg => {
-        svgRef.current = svg
-        loadGeometryFromSvg(svg, depthRatio)
-      })
-      return
-    }
+  const rasterizeToImage = useCallback((dataUrl: string) => {
     const img = new Image()
     img.src = dataUrl
     img.onload = () => {
@@ -171,19 +170,72 @@ export default function StudioPage() {
       const srcCtx = srcCanvas.getContext('2d')!
       srcCtx.drawImage(img, 0, 0)
       setSourceImageData(srcCtx.getImageData(0, 0, img.width, img.height))
-      setFileLoaded(true)
     }
-  }, [mode, depthRatio, loadGeometryFromSvg])
+  }, [])
 
-  /* Re-extrude SVG or pixel grid when depth changes */
+  const handleFile = useCallback((file: File, dataUrl: string) => {
+    setUploadError('')
+    const ext = getFileExtension(file.name)
+    const isImage = ext === '.png' || ext === '.jpg' || ext === '.jpeg'
+    const isSvg = ext === '.svg'
+    const isModel = is3dExtension(ext)
+
+    if (isSvg) {
+      setUploadedType('svg')
+      modelGeometryRef.current = null
+      rasterizeToImage(dataUrl)
+      fetch(dataUrl).then(r => r.text()).then(svg => {
+        svgRef.current = svg
+        if (mode === '3d') {
+          loadGeometryFromSvg(svg, depthRatio)
+          setShowPixelArt(false)
+          showPixelArtRef.current = false
+          setPixelGrid([])
+          pixelGridRef.current = []
+        }
+      })
+      return
+    }
+    if (isModel) {
+      setUploadedType('model')
+      svgRef.current = ''
+      loadModelGeometry(dataUrl, file.name).then(geo => {
+        if (!geo) {
+          setUploadError(`Could not read 3D file: ${file.name}`)
+          return
+        }
+        modelGeometryRef.current = geo
+        setGeometry(geo)
+        setShowPixelArt(false)
+        showPixelArtRef.current = false
+        setPixelGrid([])
+        pixelGridRef.current = []
+      }).catch(() => setUploadError(`Could not load 3D file: ${file.name}`))
+      return
+    }
+    if (isImage) {
+      setUploadedType('image')
+      svgRef.current = ''
+      modelGeometryRef.current = null
+      setGeometry(makeDefaultGeometry())
+      rasterizeToImage(dataUrl)
+      return
+    }
+    setUploadError(`Unsupported file type: ${file.name}`)
+  }, [mode, depthRatio, loadGeometryFromSvg, rasterizeToImage])
+
+  /* Re-source geometry when depth changes or mode enters 3D */
   useEffect(() => {
-    if (mode === '3d') {
-      if (showPixelArtRef.current && pixelGridRef.current.length > 0) {
-        const geo = pixelGridToGeometry(pixelGridRef.current, 4, depthRatio)
-        if (geo) setGeometry(geo)
-      } else if (svgRef.current) {
-        loadGeometryFromSvg(svgRef.current, depthRatio)
-      }
+    if (mode !== '3d') return
+    if (showPixelArtRef.current && pixelGridRef.current.length > 0) {
+      const geo = pixelGridToGeometry(pixelGridRef.current, 4, depthRatio)
+      if (geo) setGeometry(geo)
+    } else if (svgRef.current) {
+      loadGeometryFromSvg(svgRef.current, depthRatio)
+    } else if (modelGeometryRef.current) {
+      setGeometry(modelGeometryRef.current)
+    } else {
+      setGeometry(makeDefaultGeometry())
     }
   }, [depthRatio, mode, loadGeometryFromSvg])
 
@@ -289,7 +341,7 @@ export default function StudioPage() {
 
   /* 3D grid info */
   const handle3dGrid = useCallback((cols: number, rows: number) => {
-    setGridInfo({ cols, rows })
+    setGridInfo(prev => prev && prev.cols === cols && prev.rows === rows ? prev : { cols, rows })
   }, [])
 
   /* Terminal export */
@@ -379,10 +431,15 @@ export default function StudioPage() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border-subtle)' }}>
         <FileUpload
-          accept={mode === '3d' ? '.svg,image/svg+xml' : 'image/png,image/jpeg,image/svg+xml'}
+          accept={mode === '3d' ? '.svg,.glb,.gltf,.obj,.stl,.ply' : 'image/png,image/jpeg,image/svg+xml'}
           onFile={handleFile} hasFile={fileLoaded} compact
-          label={mode === '3d' ? (fileLoaded ? 'SVG loaded' : 'Upload SVG') : undefined}
+          label={mode === '3d' ? 'Upload SVG or 3D model' : undefined}
         />
+        {uploadError && (
+          <div style={{ marginTop: 8, fontSize: 11, color: 'var(--color-text-tertiary)', lineHeight: 1.4 }}>
+            {uploadError}
+          </div>
+        )}
       </div>
       <div style={{ flex: 1, overflow: 'hidden auto' }}>
         <FilterList
@@ -439,11 +496,24 @@ export default function StudioPage() {
                 </GlowButton>
               ))}
             </div>
-            <AnimatedSlider label="Spin Speed" value={spinSpeed} min={0.1} max={5} step={0.1} onChange={setSpinSpeed} format={v => v.toFixed(1)} />
+            <AnimatePresence initial={false}>
+              {animationMode === 'spin' && (
+                <motion.div
+                  key="spinSpeed"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: 'easeInOut' }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <AnimatedSlider label="Spin Speed" value={spinSpeed} min={0.1} max={5} step={0.1} onChange={setSpinSpeed} format={v => v.toFixed(1)} />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </ControlSection>
           <ControlSection label="Tone">
             <AnimatedSlider label="Bright" value={opts.brightness} min={-100} max={100} step={1} onChange={v => updateOpt('brightness', v)} />
-            <AnimatedSlider label="Contrast" value={opts.contrast} min={0} max={3} step={0.05} onChange={v => updateOpt('contrast', v)} format={v => v.toFixed(2)} />
+            <AnimatedSlider label="Contr." value={opts.contrast} min={0} max={3} step={0.05} onChange={v => updateOpt('contrast', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Gamma" value={opts.gamma} min={0.2} max={3} step={0.05} onChange={v => updateOpt('gamma', v)} format={v => v.toFixed(2)} />
           </ControlSection>
           <ControlSection label="Color">
@@ -493,14 +563,14 @@ export default function StudioPage() {
         <>
           <ControlSection label="Sampling">
             <AnimatedSlider label="Res." value={opts.width} min={10} max={160} step={1} onChange={v => updateOpt('width', v)} />
-            <AnimatedSlider label="Duration" value={opts.duration} min={1} max={10} step={1} onChange={v => updateOpt('duration', v)} format={v => `${v}s`} />
+            <AnimatedSlider label="Time" value={opts.duration} min={1} max={10} step={1} onChange={v => updateOpt('duration', v)} format={v => `${v}s`} />
             <AnimatedSlider label="FPS" value={opts.fps} min={5} max={30} step={5} onChange={v => updateOpt('fps', v)} />
             <AnimatedSlider label="Focus" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
             <CharSetPicker value={opts.charset} onChange={v => updateOpt('charset', v)} />
           </ControlSection>
           <ControlSection label="Tone">
             <AnimatedSlider label="Bright" value={opts.brightness} min={-100} max={100} step={1} onChange={v => updateOpt('brightness', v)} />
-            <AnimatedSlider label="Contrast" value={opts.contrast} min={0} max={3} step={0.05} onChange={v => updateOpt('contrast', v)} format={v => v.toFixed(2)} />
+            <AnimatedSlider label="Contr." value={opts.contrast} min={0} max={3} step={0.05} onChange={v => updateOpt('contrast', v)} format={v => v.toFixed(2)} />
           </ControlSection>
           <ControlSection label="Animation" defaultOpen={false}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 0' }}>
@@ -520,9 +590,9 @@ export default function StudioPage() {
             <ControlSection label="Radio Waves">
               <AnimatedSlider label="Range" value={opts.waveRange} min={0.2} max={1.5} step={0.05} onChange={v => updateOpt('waveRange', v)} format={v => v.toFixed(2)} />
               <AnimatedSlider label="Radius" value={opts.waveRadius} min={0.05} max={0.4} step={0.01} onChange={v => updateOpt('waveRadius', v)} format={v => v.toFixed(2)} />
-              <AnimatedSlider label="Squareness" value={opts.waveSquareness} min={0} max={1} step={0.05} onChange={v => updateOpt('waveSquareness', v)} format={v => v.toFixed(2)} />
+              <AnimatedSlider label="Square" value={opts.waveSquareness} min={0} max={1} step={0.05} onChange={v => updateOpt('waveSquareness', v)} format={v => v.toFixed(2)} />
               <AnimatedSlider label="Gap" value={opts.waveGap} min={0.04} max={0.3} step={0.01} onChange={v => updateOpt('waveGap', v)} format={v => v.toFixed(2)} />
-              <AnimatedSlider label="Amplitude" value={opts.waveAmplitude} min={0} max={50} step={1} onChange={v => updateOpt('waveAmplitude', v)} format={v => v.toString()} />
+              <AnimatedSlider label="Amp." value={opts.waveAmplitude} min={0} max={50} step={1} onChange={v => updateOpt('waveAmplitude', v)} format={v => v.toString()} />
               <AnimatedSlider label="Speed" value={opts.waveSpeed} min={0.1} max={5} step={0.1} onChange={v => updateOpt('waveSpeed', v)} format={v => v.toFixed(1)} />
               <AnimatedSlider label="Drama" value={opts.waveSharpness} min={0.5} max={5} step={0.1} onChange={v => updateOpt('waveSharpness', v)} format={v => v.toFixed(1)} />
               <AnimatedSlider label="Warmth" value={opts.waveWarmth} min={0} max={1} step={0.05} onChange={v => updateOpt('waveWarmth', v)} format={v => v.toFixed(2)} />
@@ -534,7 +604,7 @@ export default function StudioPage() {
               </label>
               {opts.waveVisible && (
                 <>
-                  <AnimatedSlider label="Thickness" value={opts.waveLineThickness} min={1} max={10} step={1} onChange={v => updateOpt('waveLineThickness', v)} format={v => v.toString()} />
+                  <AnimatedSlider label="Weight" value={opts.waveLineThickness} min={1} max={10} step={1} onChange={v => updateOpt('waveLineThickness', v)} format={v => v.toString()} />
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <label style={{ color: 'var(--color-text-secondary)', fontSize: 11 }}>Line Color:</label>
                     <input type="color" value={opts.waveLineColor} onChange={e => updateOpt('waveLineColor', e.target.value)}
@@ -587,13 +657,13 @@ export default function StudioPage() {
         <>
           <ControlSection label="Sampling">
             <AnimatedSlider label="Res." value={opts.width} min={10} max={220} step={1} onChange={v => updateOpt('width', v)} />
-            <AnimatedSlider label="Pixelate" value={opts.pixelate} min={0} max={10} step={1} onChange={v => updateOpt('pixelate', v)} />
+            <AnimatedSlider label="Pixel" value={opts.pixelate} min={0} max={10} step={1} onChange={v => updateOpt('pixelate', v)} />
             <AnimatedSlider label="Focus" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
             <CharSetPicker value={opts.charset} onChange={v => updateOpt('charset', v)} />
           </ControlSection>
           <ControlSection label="Tone">
             <AnimatedSlider label="Bright" value={opts.brightness} min={-100} max={100} step={1} onChange={v => updateOpt('brightness', v)} />
-            <AnimatedSlider label="Contrast" value={opts.contrast} min={0} max={3} step={0.05} onChange={v => updateOpt('contrast', v)} format={v => v.toFixed(2)} />
+            <AnimatedSlider label="Contr." value={opts.contrast} min={0} max={3} step={0.05} onChange={v => updateOpt('contrast', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Gamma" value={opts.gamma} min={0.2} max={3} step={0.05} onChange={v => updateOpt('gamma', v)} format={v => v.toFixed(2)} />
           </ControlSection>
           <ControlSection label="Color" defaultOpen={false}>
@@ -616,8 +686,8 @@ export default function StudioPage() {
           </ControlSection>
           <ControlSection label="Advanced" defaultOpen={false}>
             <AnimatedSlider label="Density" value={opts.densityBias} min={0.2} max={3} step={0.05} onChange={v => updateOpt('densityBias', v)} format={v => v.toFixed(2)} />
-            <AnimatedSlider label="Cut Darks" value={opts.cutDarks} min={0} max={0.5} step={0.01} onChange={v => updateOpt('cutDarks', v)} format={v => v.toFixed(2)} />
-            <AnimatedSlider label="Cut Lights" value={opts.cutLights} min={0} max={0.5} step={0.01} onChange={v => updateOpt('cutLights', v)} format={v => v.toFixed(2)} />
+            <AnimatedSlider label="Shadows" value={opts.cutDarks} min={0} max={0.5} step={0.01} onChange={v => updateOpt('cutDarks', v)} format={v => v.toFixed(2)} />
+            <AnimatedSlider label="Lights" value={opts.cutLights} min={0} max={0.5} step={0.01} onChange={v => updateOpt('cutLights', v)} format={v => v.toFixed(2)} />
             <label style={{ color: 'var(--color-text-secondary)', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4, padding: '2px 0' }}>
               <input type="checkbox" checked={opts.invert} onChange={e => updateOpt('invert', e.target.checked)} /> Invert
             </label>

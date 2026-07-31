@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { filters } from '../lib/filters'
 import AnimatedRow, { useRowHover } from './AnimatedRow'
-import RangeSlider from './RangeSlider'
+import AnimatedSlider from './AnimatedSlider'
 
 interface Props {
   activeFilters: string[]
@@ -60,13 +60,13 @@ export default function FilterList({ activeFilters, filterParams, onChange, onPa
                 style={{ padding: '4px 16px 6px 31px', borderBottom: '1px solid var(--color-border-subtle)', overflow: 'hidden' }}
               >
                 {f.params?.map(p =>
-                  <RangeSlider key={p.key}
-                    label={p.label} min={p.min} max={p.max} step={p.step}
+                  <AnimatedSlider key={p.key}
+                    label={p.label} labelWidth={40} min={p.min} max={p.max} step={p.step}
                     value={filterParams[f.id]?.[p.key] ?? p.default}
                     onChange={v => onParamChange(f.id, p.key, v)}
                   />
                 )}
-                <RangeSlider label="Intensity" min={0} max={1} step={0.05}
+                <AnimatedSlider label="Int." labelWidth={40} min={0} max={1} step={0.05}
                   value={filterParams[f.id]?.intensity ?? 1}
                   onChange={v => onParamChange(f.id, 'intensity', v)}
                 />
