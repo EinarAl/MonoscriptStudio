@@ -446,7 +446,7 @@ export default function StudioPage() {
           </div>
         )}
       </div>
-      <div style={{ flex: 1, overflow: 'hidden' }}>
+      <div style={{ flex: 1, overflow: 'hidden auto', touchAction: 'pan-y' }}>
         <FilterList
           activeFilters={opts.activeFilters}
           filterParams={opts.filterParams}

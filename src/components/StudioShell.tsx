@@ -66,10 +66,12 @@ export default function StudioShell({ mode, onModeChange, leftSidebar, rightSide
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.02em' }}>MonoscriptStudio</span>
-          <span style={{
-            fontSize: 10, color: 'var(--color-text-tertiary)', padding: '2px 6px',
-            border: '1px solid var(--color-border-subtle)', borderRadius: 4,
-          }}>beta</span>
+          {!isMobile && (
+            <span style={{
+              fontSize: 10, color: 'var(--color-text-tertiary)', padding: '2px 6px',
+              border: '1px solid var(--color-border-subtle)', borderRadius: 4,
+            }}>beta</span>
+          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <ModeToggle value={mode} onChange={onModeChange} />
@@ -87,7 +89,7 @@ export default function StudioShell({ mode, onModeChange, leftSidebar, rightSide
             display: 'flex', flexDirection: 'column',
           }}
         >
-          <div style={{ width: LEFT_DEFAULT, height: '100%', overflow: 'hidden' }}>
+          <div style={{ width: LEFT_DEFAULT, height: '100%', overflow: 'hidden auto', touchAction: 'pan-y' }}>
             {leftSidebar}
           </div>
         </motion.aside>
@@ -157,7 +159,7 @@ export default function StudioShell({ mode, onModeChange, leftSidebar, rightSide
             display: 'flex', flexDirection: 'column',
           }}
         >
-          <div style={{ width: RIGHT_DEFAULT, height: '100%', overflow: 'hidden' }}>
+          <div style={{ width: RIGHT_DEFAULT, height: '100%', overflow: 'hidden auto', touchAction: 'pan-y' }}>
             {rightSidebar}
           </div>
         </motion.aside>
