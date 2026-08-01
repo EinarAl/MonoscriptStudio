@@ -384,33 +384,6 @@ export const filters: FilterDef[] = [
       }
     },
   },
-  {
-    id: 'cameraShake',
-    label: 'Camera Shake',
-    params: [
-      { key: 'blurriness', label: 'Blur', min: -10, max: 10, step: 1, default: -5 },
-      { key: 'threshold', label: 'Thresh', min: 0.1, max: 3, step: 0.1, default: 1 },
-      { key: 'ringing', label: 'Ring', min: 0.05, max: 0.5, step: 0.05, default: 0.2 },
-    ],
-    apply(data, w, h, p) {
-      const len = Math.max(1, Math.abs(Math.round(p.blurriness ?? -5)))
-      const copy = new Uint8ClampedArray(data)
-      for (let y = 0; y < h; y++) {
-        for (let x = 0; x < w; x++) {
-          let r = 0, g = 0, b = 0, cnt = 0
-          for (let s = -len; s <= len; s++) {
-            const sy = Math.round(y + s * 0.5)
-            if (sy >= 0 && sy < h) {
-              const j = (sy * w + x) * 4
-              r += copy[j]; g += copy[j + 1]; b += copy[j + 2]; cnt++
-            }
-          }
-          const i = (y * w + x) * 4
-          data[i] = r / cnt; data[i + 1] = g / cnt; data[i + 2] = b / cnt
-        }
-      }
-    },
-  },
 ]
 
 // ── Presets ──
