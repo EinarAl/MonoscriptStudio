@@ -60,7 +60,7 @@ export interface AsciiOptions {
 
 export const DEFAULT_ASCII_OPTIONS: AsciiOptions = {
   width: 100,
-  contentScale: 1,
+  contentScale: 0.8,
   charset: DEFAULT_CHARSET,
   invert: false,
   heightScale: 0.5,
