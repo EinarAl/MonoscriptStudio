@@ -160,8 +160,8 @@ export default function ThreeDViewer({ geometry, asciiOptions, animationMode, sp
         targetRotY = currentRotY
       } else {
         const rect = container.getBoundingClientRect()
-        const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1
-        const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1
+        const nx = Math.max(-1, Math.min(1, ((e.clientX - rect.left) / rect.width) * 2 - 1))
+        const ny = Math.max(-1, Math.min(1, ((e.clientY - rect.top) / rect.height) * 2 - 1))
         targetRotY = nx * 0.5
         targetRotX = ny * 0.5
       }
@@ -180,7 +180,7 @@ export default function ThreeDViewer({ geometry, asciiOptions, animationMode, sp
       isDragging = false
     }
 
-    container.addEventListener('pointermove', handlePointerMove)
+    window.addEventListener('pointermove', handlePointerMove)
     container.addEventListener('pointerdown', handlePointerDown)
     container.addEventListener('pointerup', handlePointerUp)
     container.addEventListener('pointerleave', handlePointerUp)
@@ -188,7 +188,7 @@ export default function ThreeDViewer({ geometry, asciiOptions, animationMode, sp
     return () => {
       cancelAnimationFrame(animId)
       ro.disconnect()
-      container.removeEventListener('pointermove', handlePointerMove)
+      window.removeEventListener('pointermove', handlePointerMove)
       container.removeEventListener('pointerdown', handlePointerDown)
       container.removeEventListener('pointerup', handlePointerUp)
       container.removeEventListener('pointerleave', handlePointerUp)
