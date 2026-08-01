@@ -41,7 +41,7 @@ Three modes share one sidebar (filters, presets) and a per-mode toolbar (samplin
 ## Component Choices
 
 - **React 19 + Vite 8 + TypeScript 6** for the shell. Chosen for fast HMR and a zero-config static build. Rejected Next.js because there is no server logic; this is a pure client tool and a static `dist/` is the deployment target.
-- **three.js 0.172** for the 3D mode. Mature loaders for GLB/GLTF/OBJ/STL/PLY and solid WebGL rendering. Tradeoff: it dominates the bundle at roughly 850KB, which is acceptable for a tool site but heavy for a landing page.
+- **three.js 0.172** for the 3D mode. Mature loaders for GLB/GLTF/OBJ/STL/PLY and solid WebGL rendering. Tradeoff: it dominates the bundle at roughly 1MB minified (about 290KB gzip), which is acceptable for a tool site but heavy for a landing page.
 - **gif.js** for animated GIF output. Simplest path from canvas frames to an encoded GIF via a worker. Tradeoff: a single worker means long exports run partially on the main thread and block input.
 - **framer-motion** for UI motion (mode toggle springs, section expand/collapse). Chosen for the polished feel. Tradeoff: it pulls in a bundle cost that plain CSS transitions would avoid, but the spring behavior is what gives the toolbar its character.
 - **No state library**. React state plus refs hold the shared options object and per-mode buffers. Rejected Redux and Zustand: cross-component state is a single tree and does not justify another dependency.
