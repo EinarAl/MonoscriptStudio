@@ -34,6 +34,14 @@ export default function StudioPage() {
   const [mode, setMode] = useState<Mode>('3d')
   const [leftOpen, setLeftOpen] = useState(() => window.innerWidth > 768)
   const [rightOpen, setRightOpen] = useState(() => window.innerWidth > 768)
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)')
+    const onChange = () => setIsMobile(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
   const [opts, setOpts] = useState<AsciiOptions>({ ...DEFAULT_ASCII_OPTIONS })
   const [geometry, setGeometry] = useState<THREE.BufferGeometry>(() => makeDefaultGeometry())
   const [animationMode, setAnimationMode] = useState<'spin' | 'tilt' | 'drag'>('tilt')
@@ -197,6 +205,7 @@ export default function StudioPage() {
         }
       })
       setLeftOpen(true)
+      if (isMobile) setRightOpen(false)
       return
     }
     if (isModel) {
@@ -215,6 +224,7 @@ export default function StudioPage() {
         pixelGridRef.current = []
       }).catch(() => setUploadError(`Could not load 3D file: ${file.name}`))
       setLeftOpen(true)
+      if (isMobile) setRightOpen(false)
       return
     }
     if (isImage) {
@@ -224,10 +234,11 @@ export default function StudioPage() {
       setGeometry(makeDefaultGeometry())
       rasterizeToImage(dataUrl)
       setLeftOpen(true)
+      if (isMobile) setRightOpen(false)
       return
     }
     setUploadError(`Unsupported file type: ${file.name}`)
-  }, [mode, depthRatio, loadGeometryFromSvg, rasterizeToImage])
+  }, [mode, depthRatio, loadGeometryFromSvg, rasterizeToImage, isMobile])
 
   /* Re-source geometry when depth changes or mode enters 3D */
   useEffect(() => {
@@ -734,8 +745,22 @@ export default function StudioPage() {
       rightSidebar={rightSidebar}
       leftOpen={leftOpen}
       rightOpen={rightOpen}
-      onToggleLeft={() => setLeftOpen(o => !o)}
-      onToggleRight={() => setRightOpen(o => !o)}
+      onToggleLeft={() => {
+        if (isMobile) {
+          if (leftOpen) setLeftOpen(false)
+          else { setLeftOpen(true); setRightOpen(false) }
+        } else {
+          setLeftOpen(o => !o)
+        }
+      }}
+      onToggleRight={() => {
+        if (isMobile) {
+          if (rightOpen) setRightOpen(false)
+          else { setRightOpen(true); setLeftOpen(false) }
+        } else {
+          setRightOpen(o => !o)
+        }
+      }}
     >
       <div
         onWheel={handlePreviewWheel}
