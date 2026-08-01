@@ -2,6 +2,8 @@
 
 Turn images, SVG, and 3D models into ASCII art, animated ASCII GIFs, and terminal scripts. One upload, three modes, a shared filter and preset stack.
 
+**Live demo:** [monoscript-studio.vercel.app](https://monoscript-studio.vercel.app)
+
 ## Problem Statement
 
 ASCII art tools tend to be either toys or narrow developer utilities. None of them take a real asset and produce all three outputs people actually want: a static image, an animated GIF, and a 3D render you can run in a terminal. MonoscriptStudio covers all three from a single upload, with the same filters and presets applied in every mode.
