@@ -10,6 +10,10 @@ interface Props {
   leftSidebar: ReactNode
   rightSidebar: ReactNode
   children: ReactNode
+  leftOpen: boolean
+  rightOpen: boolean
+  onToggleLeft: () => void
+  onToggleRight: () => void
 }
 
 const LEFT_DEFAULT = 220
@@ -19,10 +23,16 @@ const ARROW_GAP = 6
 const MAXIMIZE_PATH = 'M0.5 9.7046 L0.5 21.7046 M0.5 21.7046 L12.5 21.7046 M21.5 12.7046 L21.5 0.7046 M21.4348 0.5 L9 0.5'
 const MINIMIZE_PATH = 'M0.5 0.5 L0.5 21.5 M0.5 21.5 L21.5 21.5 M21.5 21.5 L21.5 0.5 M21.5 0.5 L0.5 0.5'
 
-export default function StudioShell({ mode, onModeChange, leftSidebar, rightSidebar, children }: Props) {
-  const [leftOpen, setLeftOpen] = useState(() => window.innerWidth > 768)
-  const [rightOpen, setRightOpen] = useState(() => window.innerWidth > 768)
+export default function StudioShell({ mode, onModeChange, leftSidebar, rightSidebar, children, leftOpen, rightOpen, onToggleLeft, onToggleRight }: Props) {
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 768px)').matches)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)')
+    const onChange = () => setIsMobile(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
 
   useEffect(() => {
     const onChange = () => setIsFullscreen(!!document.fullscreenElement)
@@ -42,12 +52,9 @@ export default function StudioShell({ mode, onModeChange, leftSidebar, rightSide
     }
   }, [])
 
-  const toggleLeft = useCallback(() => setLeftOpen(o => !o), [])
-  const toggleRight = useCallback(() => setRightOpen(o => !o), [])
-
   return (
     <div style={{
-      display: 'flex', flexDirection: 'column', height: '100vh',
+      display: 'flex', flexDirection: 'column', height: '100dvh',
       background: 'var(--color-void)', color: 'var(--color-text-primary)',
       fontFamily: 'var(--font-sans)', overflow: 'hidden',
     }}>
@@ -80,12 +87,12 @@ export default function StudioShell({ mode, onModeChange, leftSidebar, rightSide
             display: 'flex', flexDirection: 'column',
           }}
         >
-          <div style={{ width: LEFT_DEFAULT, height: '100%', overflow: 'hidden auto' }}>
+          <div style={{ width: LEFT_DEFAULT, height: '100%', overflow: 'hidden' }}>
             {leftSidebar}
           </div>
         </motion.aside>
 
-        <button onClick={toggleLeft}
+        <button onClick={onToggleLeft}
           style={{
             position: 'absolute', left: leftOpen ? LEFT_DEFAULT + ARROW_GAP : 0, top: '50%',
             translate: '0 -50%',
@@ -102,31 +109,33 @@ export default function StudioShell({ mode, onModeChange, leftSidebar, rightSide
           overflow: 'hidden', position: 'relative', background: '#000000',
         }}>
           {children}
-          <button
-            onClick={toggleFullscreen}
-            title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
-            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-            style={{
-              position: 'absolute', top: 10, right: 12, zIndex: 30,
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              width: 30, height: 30, padding: 0,
-              background: 'transparent', border: 'none',
-              color: 'var(--color-text-tertiary)',
-              cursor: 'pointer', transition: 'color 0.15s ease, opacity 0.15s ease',
-              opacity: isFullscreen ? 0.9 : 0.5,
-            }}
-          >
-            <svg width={16} height={16} viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" aria-hidden="true">
-              <motion.path
-                initial={false}
-                animate={{ d: isFullscreen ? MINIMIZE_PATH : MAXIMIZE_PATH }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-              />
-            </svg>
-          </button>
+          {!isMobile && (
+            <button
+              onClick={toggleFullscreen}
+              title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+              style={{
+                position: 'absolute', top: 10, right: 12, zIndex: 30,
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                width: 30, height: 30, padding: 0,
+                background: 'transparent', border: 'none',
+                color: 'var(--color-text-tertiary)',
+                cursor: 'pointer', transition: 'color 0.15s ease, opacity 0.15s ease',
+                opacity: isFullscreen ? 0.9 : 0.5,
+              }}
+            >
+              <svg width={16} height={16} viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" aria-hidden="true">
+                <motion.path
+                  initial={false}
+                  animate={{ d: isFullscreen ? MINIMIZE_PATH : MAXIMIZE_PATH }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                />
+              </svg>
+            </button>
+          )}
         </main>
 
-        <button onClick={toggleRight}
+        <button onClick={onToggleRight}
           style={{
             position: 'absolute', right: rightOpen ? RIGHT_DEFAULT + ARROW_GAP : 0, top: '50%',
             translate: '0 -50%',
@@ -148,7 +157,7 @@ export default function StudioShell({ mode, onModeChange, leftSidebar, rightSide
             display: 'flex', flexDirection: 'column',
           }}
         >
-          <div style={{ width: RIGHT_DEFAULT, height: '100%', overflow: 'hidden auto' }}>
+          <div style={{ width: RIGHT_DEFAULT, height: '100%', overflow: 'hidden' }}>
             {rightSidebar}
           </div>
         </motion.aside>

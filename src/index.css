@@ -71,6 +71,12 @@
 }
 
 * { box-sizing: border-box; }
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+}
 body {
   margin: 0;
   padding: 0;
@@ -95,6 +101,21 @@ pre {
 button {
   font-family: inherit;
   cursor: pointer;
+}
+.file-upload-fill {
+  color: var(--color-text-secondary);
+  transition: color 0.15s ease;
+}
+.file-upload-fill:hover {
+  color: var(--color-accent);
+}
+.file-upload-fill > span {
+  display: inline-block;
+  transition: transform 0.15s ease, text-shadow 0.15s ease;
+}
+.file-upload-fill:hover > span {
+  transform: scale(1.02);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.45);
 }
 input, select {
   font-family: inherit;

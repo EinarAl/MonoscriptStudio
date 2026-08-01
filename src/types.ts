@@ -16,6 +16,7 @@ export type ColorMode = 'mono' | 'multi' | 'original'
 
 export interface AsciiOptions {
   width: number
+  contentScale: number
   charset: string
   invert: boolean
   heightScale: number
@@ -59,6 +60,7 @@ export interface AsciiOptions {
 
 export const DEFAULT_ASCII_OPTIONS: AsciiOptions = {
   width: 100,
+  contentScale: 1,
   charset: DEFAULT_CHARSET,
   invert: false,
   heightScale: 0.5,

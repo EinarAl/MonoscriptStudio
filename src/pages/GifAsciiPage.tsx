@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
+import FileUpload from '../components/FileUpload'
 import type { AsciiOptions } from '../types'
 
 interface Props {
@@ -7,9 +8,10 @@ interface Props {
   previewUrl: string
   gifUrl: string
   gifDone: boolean
+  onFile: (file: File, dataUrl: string) => void
 }
 
-export default function GifAsciiPage({ opts, updateOpt, previewUrl, gifUrl, gifDone }: Props) {
+export default function GifAsciiPage({ opts, updateOpt, previewUrl, gifUrl, gifDone, onFile }: Props) {
   const gridRef = useRef<HTMLDivElement>(null)
   const draggingRef = useRef(false)
   const [isDragging, setIsDragging] = useState(false)
@@ -43,9 +45,12 @@ export default function GifAsciiPage({ opts, updateOpt, previewUrl, gifUrl, gifD
 
   if (!src) {
     return (
-      <div style={{ color: 'var(--color-text-tertiary)', fontSize: 14 }}>
-        Upload an image in the sidebar to start
-      </div>
+      <FileUpload
+        fill
+        accept="image/png,image/jpeg,image/svg+xml"
+        onFile={onFile}
+        label="Tap or drop an image to start"
+      />
     )
   }
 

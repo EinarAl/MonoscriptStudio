@@ -32,6 +32,8 @@ function makeDefaultGeometry(): THREE.BufferGeometry {
 
 export default function StudioPage() {
   const [mode, setMode] = useState<Mode>('3d')
+  const [leftOpen, setLeftOpen] = useState(() => window.innerWidth > 768)
+  const [rightOpen, setRightOpen] = useState(() => window.innerWidth > 768)
   const [opts, setOpts] = useState<AsciiOptions>({ ...DEFAULT_ASCII_OPTIONS })
   const [geometry, setGeometry] = useState<THREE.BufferGeometry>(() => makeDefaultGeometry())
   const [animationMode, setAnimationMode] = useState<'spin' | 'tilt' | 'drag'>('tilt')
@@ -194,6 +196,7 @@ export default function StudioPage() {
           pixelGridRef.current = []
         }
       })
+      setLeftOpen(true)
       return
     }
     if (isModel) {
@@ -211,6 +214,7 @@ export default function StudioPage() {
         setPixelGrid([])
         pixelGridRef.current = []
       }).catch(() => setUploadError(`Could not load 3D file: ${file.name}`))
+      setLeftOpen(true)
       return
     }
     if (isImage) {
@@ -219,6 +223,7 @@ export default function StudioPage() {
       modelGeometryRef.current = null
       setGeometry(makeDefaultGeometry())
       rasterizeToImage(dataUrl)
+      setLeftOpen(true)
       return
     }
     setUploadError(`Unsupported file type: ${file.name}`)
@@ -441,7 +446,7 @@ export default function StudioPage() {
           </div>
         )}
       </div>
-      <div style={{ flex: 1, overflow: 'hidden auto' }}>
+      <div style={{ flex: 1, overflow: 'hidden' }}>
         <FilterList
           activeFilters={opts.activeFilters}
           filterParams={opts.filterParams}
@@ -472,6 +477,7 @@ export default function StudioPage() {
         <>
           <ControlSection label="Sampling">
             <AnimatedSlider label="Res." value={opts.width} min={10} max={160} step={1} onChange={v => updateOpt('width', v)} />
+            <AnimatedSlider label="Scale" value={opts.contentScale} min={0.5} max={4} step={0.1} onChange={v => updateOpt('contentScale', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Density" value={opts.densityBias} min={0.2} max={3} step={0.05} onChange={v => updateOpt('densityBias', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Depth" value={depthRatio} min={0.1} max={1} step={0.05} onChange={setDepthRatio} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Focus" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
@@ -563,6 +569,7 @@ export default function StudioPage() {
         <>
           <ControlSection label="Sampling">
             <AnimatedSlider label="Res." value={opts.width} min={10} max={160} step={1} onChange={v => updateOpt('width', v)} />
+            <AnimatedSlider label="Scale" value={opts.contentScale} min={0.5} max={4} step={0.1} onChange={v => updateOpt('contentScale', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Time" value={opts.duration} min={1} max={10} step={1} onChange={v => updateOpt('duration', v)} format={v => `${v}s`} />
             <AnimatedSlider label="FPS" value={opts.fps} min={5} max={30} step={5} onChange={v => updateOpt('fps', v)} />
             <AnimatedSlider label="Focus" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
@@ -657,6 +664,7 @@ export default function StudioPage() {
         <>
           <ControlSection label="Sampling">
             <AnimatedSlider label="Res." value={opts.width} min={10} max={220} step={1} onChange={v => updateOpt('width', v)} />
+            <AnimatedSlider label="Scale" value={opts.contentScale} min={0.5} max={4} step={0.1} onChange={v => updateOpt('contentScale', v)} format={v => v.toFixed(2)} />
             <AnimatedSlider label="Pixel" value={opts.pixelate} min={0} max={10} step={1} onChange={v => updateOpt('pixelate', v)} />
             <AnimatedSlider label="Focus" value={opts.outputScale} min={0.25} max={4} step={0.25} onChange={v => updateOpt('outputScale', v)} format={v => v.toFixed(2)} />
             <CharSetPicker value={opts.charset} onChange={v => updateOpt('charset', v)} />
@@ -719,7 +727,16 @@ export default function StudioPage() {
   )
 
   return (
-    <StudioShell mode={mode} onModeChange={setMode} leftSidebar={leftSidebar} rightSidebar={rightSidebar}>
+    <StudioShell
+      mode={mode}
+      onModeChange={setMode}
+      leftSidebar={leftSidebar}
+      rightSidebar={rightSidebar}
+      leftOpen={leftOpen}
+      rightOpen={rightOpen}
+      onToggleLeft={() => setLeftOpen(o => !o)}
+      onToggleRight={() => setRightOpen(o => !o)}
+    >
       <div
         onWheel={handlePreviewWheel}
         onMouseDown={handlePreviewMouseDown}
@@ -758,6 +775,7 @@ export default function StudioPage() {
                   previewUrl={previewUrl}
                   gifUrl={gifUrl}
                   gifDone={gifDone}
+                  onFile={handleFile}
                 />
               )}
               {mode === 'static' && (
@@ -765,7 +783,7 @@ export default function StudioPage() {
                   grid={staticGrid}
                   opts={opts}
                   sourceImageData={sourceImageData}
-                  fileLoaded={fileLoaded}
+                  onFile={handleFile}
                 />
               )}
             </motion.div>

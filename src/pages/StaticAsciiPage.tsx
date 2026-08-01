@@ -1,4 +1,5 @@
 import AsciiPreview from '../components/AsciiPreview'
+import FileUpload from '../components/FileUpload'
 import { gridToPlainText } from '../lib/imageToAscii'
 import type { AsciiOptions, AsciiGrid } from '../types'
 
@@ -6,15 +7,18 @@ interface Props {
   grid: AsciiGrid | null
   opts: AsciiOptions
   sourceImageData: ImageData | null
-  fileLoaded: boolean
+  onFile: (file: File, dataUrl: string) => void
 }
 
-export default function StaticAsciiPage({ grid, opts, sourceImageData, fileLoaded }: Props) {
-  if (!fileLoaded || !grid) {
+export default function StaticAsciiPage({ grid, opts, sourceImageData, onFile }: Props) {
+  if (!grid) {
     return (
-      <div style={{ color: 'var(--color-text-tertiary)', fontSize: 14 }}>
-        Upload an image in the sidebar to start
-      </div>
+      <FileUpload
+        fill
+        accept="image/png,image/jpeg,image/svg+xml"
+        onFile={onFile}
+        label="Tap or drop an image to start"
+      />
     )
   }
 
@@ -23,7 +27,7 @@ export default function StaticAsciiPage({ grid, opts, sourceImageData, fileLoade
   return (
     <div style={{
       width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#000000', overflow: 'auto',
+      background: '#000000', overflow: 'hidden',
     }}>
       <AsciiPreview
         grid={grid}

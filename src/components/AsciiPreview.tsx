@@ -31,7 +31,7 @@ export default function AsciiPreview({ ascii, grid, fontSize = 8, lineHeight = 1
         background: bgTransparent ? 'transparent' : bgColor,
         width: '100%', height: '100%',
         display: 'flex', justifyContent: 'center', alignItems: 'center',
-        overflow: 'auto',
+        overflow: 'hidden',
       }}>
         <canvas ref={canvasRef} width={w} height={h}
           style={{ width: '100%', height: '100%', objectFit: 'contain', imageRendering: 'pixelated' }} />
@@ -44,7 +44,7 @@ export default function AsciiPreview({ ascii, grid, fontSize = 8, lineHeight = 1
     <div style={{
       background: '#000000', width: '100%', height: '100%',
       display: 'flex', justifyContent: 'center', alignItems: 'center',
-      overflow: 'auto',
+      overflow: 'hidden',
     }}>
       <pre style={{
         margin: 0, fontSize: fontSize * outputScale, lineHeight,

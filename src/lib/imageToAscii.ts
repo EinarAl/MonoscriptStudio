@@ -95,6 +95,12 @@ export function imageToAsciiGrid(imageData: ImageData, options: AsciiOptions): A
   const { width: outW, charset, invert, heightScale, densityBias, brightness, contrast, gamma, pixelate, colorMode, fgColor, cutDarks, cutLights } = options
   const { data: srcData, width: imgW, height: imgH } = imageData
 
+  const scale = Math.max(0.1, options.contentScale || 1)
+  const regionW = imgW / scale
+  const regionH = imgH / scale
+  const offX = (imgW - regionW) / 2
+  const offY = (imgH - regionH) / 2
+
   const data = new Uint8ClampedArray(srcData)
 
   applyPixelate(data, imgW, imgH, pixelate)
@@ -122,10 +128,10 @@ export function imageToAsciiGrid(imageData: ImageData, options: AsciiOptions): A
   for (let row = 0; row < outH; row++) {
     const rowCells: AsciiCell[] = []
     for (let col = 0; col < outW; col++) {
-      const cx = (col + 0.5) / outW * imgW
-      const cy = (row + 0.5) / outH * imgH
-      const px = Math.floor(cx)
-      const py = Math.floor(cy)
+      const cx = offX + (col + 0.5) / outW * regionW
+      const cy = offY + (row + 0.5) / outH * regionH
+      const px = Math.max(0, Math.min(imgW - 1, Math.floor(cx)))
+      const py = Math.max(0, Math.min(imgH - 1, Math.floor(cy)))
       const i = (py * imgW + px) * 4
       const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3]
 

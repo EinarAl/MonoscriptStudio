@@ -33,19 +33,29 @@ export default function ThreeDViewer({ geometry, asciiOptions, animationMode, sp
 
   useEffect(() => {
     const container = containerRef.current
-    const W = 640
-    const H = 480
 
     const scene = new THREE.Scene()
     scene.background = new THREE.Color('#000000')
 
-    const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100)
+    const camera = new THREE.PerspectiveCamera(45, 640 / 480, 0.1, 100)
 
     const renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true })
-    renderer.setSize(W, H)
+    renderer.setSize(640, 480)
     renderer.setPixelRatio(1)
     renderer.domElement.style.display = 'none'
     container.appendChild(renderer.domElement)
+
+    const resize = () => {
+      const w = container.clientWidth
+      const h = container.clientHeight
+      if (w === 0 || h === 0) return
+      renderer.setSize(w, h, false)
+      camera.aspect = w / h
+      camera.updateProjectionMatrix()
+    }
+    const ro = new ResizeObserver(resize)
+    ro.observe(container)
+    resize()
 
     const ambient = new THREE.AmbientLight(0xffffff, 0.15)
     scene.add(ambient)
@@ -64,12 +74,14 @@ export default function ThreeDViewer({ geometry, asciiOptions, animationMode, sp
     const bsize = bbox.getSize(new THREE.Vector3())
     const center = bbox.getCenter(new THREE.Vector3())
     const size = bsize.length()
-    const dist = Math.max(size * 1.6, 3)
-    camera.position.set(center.x, center.y, dist)
+    const baseDist = Math.max(size * 1.6, 3)
+    const camTarget = new THREE.Vector3()
+    camera.position.set(center.x, center.y, baseDist)
     camera.lookAt(center)
-    camera.near = dist * 0.01
-    camera.far = dist * 4
+    camera.near = baseDist * 0.01
+    camera.far = baseDist * 4
     camera.updateProjectionMatrix()
+    camTarget.copy(center)
 
     const filter = makeAsciiFilter(renderer)
     const canvas = canvasRef.current
@@ -121,6 +133,8 @@ export default function ThreeDViewer({ geometry, asciiOptions, animationMode, sp
       if (now - lastAsciiTime >= 33) {
         lastAsciiTime = now
         const opts = optsRef.current
+        const zoom = Math.max(0.1, opts.contentScale || 1)
+        camera.position.set(camTarget.x, camTarget.y, baseDist / zoom)
         const grid = filter.renderToAscii(scene, camera, opts)
         renderGridToCanvas(grid, opts.bgColor, opts.bgTransparent, 7 * opts.outputScale, 12 * opts.outputScale, canvas, ctx)
         onFrameRef.current?.(gridToPlainText(grid))
@@ -173,6 +187,7 @@ export default function ThreeDViewer({ geometry, asciiOptions, animationMode, sp
 
     return () => {
       cancelAnimationFrame(animId)
+      ro.disconnect()
       container.removeEventListener('pointermove', handlePointerMove)
       container.removeEventListener('pointerdown', handlePointerDown)
       container.removeEventListener('pointerup', handlePointerUp)
