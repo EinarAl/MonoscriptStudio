@@ -96,9 +96,13 @@ export default function StudioShell({ mode, onModeChange, leftSidebar, rightSide
 
         <button onClick={onToggleLeft}
           style={{
-            position: 'absolute', left: leftOpen ? LEFT_DEFAULT + ARROW_GAP : 0, top: '50%',
+            position: 'absolute', left: leftOpen ? LEFT_DEFAULT : 0, top: '50%',
             translate: '0 -50%',
-            zIndex: 20, padding: 0, border: 'none', background: 'none',
+            zIndex: 20,
+            width: 44, height: 44,
+            display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
+            padding: `0 0 0 ${ARROW_GAP}px`,
+            border: 'none', background: 'none',
             color: 'var(--color-text-tertiary)', cursor: 'pointer',
             fontSize: 18, lineHeight: 1, opacity: 0.6,
           }}
@@ -139,9 +143,13 @@ export default function StudioShell({ mode, onModeChange, leftSidebar, rightSide
 
         <button onClick={onToggleRight}
           style={{
-            position: 'absolute', right: rightOpen ? RIGHT_DEFAULT + ARROW_GAP : 0, top: '50%',
+            position: 'absolute', right: rightOpen ? RIGHT_DEFAULT : 0, top: '50%',
             translate: '0 -50%',
-            zIndex: 20, padding: 0, border: 'none', background: 'none',
+            zIndex: 20,
+            width: 44, height: 44,
+            display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+            padding: `0 ${ARROW_GAP}px 0 0`,
+            border: 'none', background: 'none',
             color: 'var(--color-text-tertiary)', cursor: 'pointer',
             fontSize: 18, lineHeight: 1, opacity: 0.6,
           }}
